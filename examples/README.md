@@ -1,6 +1,6 @@
 # Examples
 
-This directory contains example code demonstrating how to use `@falkordb/text-to-cypher-node`.
+This directory contains example code demonstrating how to use `@falkordb/text-to-cypher`.
 
 ## Running Examples
 

@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: text-to-cypher-node.*.node
+          path: text-to-cypher.*.node
           if-no-files-found: error
 
   universal-macOS:
@@ -147,7 +147,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bindings-universal-apple-darwin
-          path: text-to-cypher-node.*.node
+          path: text-to-cypher.*.node
           if-no-files-found: error
 
   publish:

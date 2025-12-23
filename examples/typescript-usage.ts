@@ -1,5 +1,5 @@
 /**
- * TypeScript example for text-to-cypher-node
+ * TypeScript example for @falkordb/text-to-cypher
  */
 
 import { TextToCypher, ClientOptions, TextToCypherResponse } from '../index';

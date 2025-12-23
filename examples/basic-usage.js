@@ -1,5 +1,5 @@
 /**
- * Basic usage example for text-to-cypher-node
+ * Basic usage example for @falkordb/text-to-cypher
  * 
  * This example demonstrates how to:
  * 1. Create a TextToCypher client

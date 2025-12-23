@@ -1,8 +1,8 @@
-# @falkordb/text-to-cypher-node
+# @falkordb/text-to-cypher
 
 Node.js bindings for the [FalkorDB text-to-cypher](https://github.com/FalkorDB/text-to-cypher) library - Convert natural language to Cypher queries using AI.
 
-[![npm version](https://img.shields.io/npm/v/@falkordb/text-to-cypher-node.svg)](https://www.npmjs.com/package/@falkordb/text-to-cypher-node)
+[![npm version](https://img.shields.io/npm/v/@falkordb/text-to-cypher.svg)](https://www.npmjs.com/package/@falkordb/text-to-cypher)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -17,7 +17,7 @@ Node.js bindings for the [FalkorDB text-to-cypher](https://github.com/FalkorDB/t
 ## Installation
 
 ```bash
-npm install @falkordb/text-to-cypher-node
+npm install @falkordb/text-to-cypher
 ```
 
 **📚 New to this library? Check out the [Quick Start Guide](QUICKSTART.md) for a 5-minute introduction!**
@@ -25,7 +25,7 @@ npm install @falkordb/text-to-cypher-node
 ## Quick Start
 
 ```javascript
-const { TextToCypher } = require('@falkordb/text-to-cypher-node');
+const { TextToCypher } = require('@falkordb/text-to-cypher');
 
 // Create a client
 const client = new TextToCypher({
@@ -175,7 +175,7 @@ See [genai documentation](https://docs.rs/genai/latest/genai/) for a complete li
 ### Using with FalkorDB Browser
 
 ```javascript
-const { TextToCypher } = require('@falkordb/text-to-cypher-node');
+const { TextToCypher } = require('@falkordb/text-to-cypher');
 
 // In your Express.js or other Node.js server
 app.post('/api/text-to-cypher', async (req, res) => {
@@ -199,7 +199,7 @@ app.post('/api/text-to-cypher', async (req, res) => {
 ### TypeScript Usage
 
 ```typescript
-import { TextToCypher, ClientOptions, TextToCypherResponse } from '@falkordb/text-to-cypher-node';
+import { TextToCypher, ClientOptions, TextToCypherResponse } from '@falkordb/text-to-cypher';
 
 const options: ClientOptions = {
   model: 'gpt-4o-mini',

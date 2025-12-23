@@ -1,4 +1,4 @@
-# Project Summary: text-to-cypher-node
+# Project Summary: @falkordb/text-to-cypher
 
 ## Overview
 
@@ -81,7 +81,7 @@ This project implements Node.js bindings for the FalkorDB text-to-cypher Rust li
    - Comments explaining configuration choices
 
 2. **package.json** - npm configuration
-   - Scoped package name: @falkordb/text-to-cypher-node
+   - Scoped package name: @falkordb/text-to-cypher
    - Scripts: build, test, format, lint
    - Files whitelist for clean packages
    - Node.js >= 16 requirement
@@ -162,7 +162,7 @@ Successfully built and tested on Linux x64:
 ## Usage Example
 
 ```javascript
-const { TextToCypher } = require('@falkordb/text-to-cypher-node');
+const { TextToCypher } = require('@falkordb/text-to-cypher');
 
 const client = new TextToCypher({
   model: 'gpt-4o-mini',

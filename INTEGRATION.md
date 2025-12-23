@@ -1,17 +1,17 @@
 # Integration Guide for FalkorDB Browser
 
-This guide explains how to integrate `@falkordb/text-to-cypher-node` into the [FalkorDB Browser](https://github.com/FalkorDB/falkordb-browser).
+This guide explains how to integrate `@falkordb/text-to-cypher` into the [FalkorDB Browser](https://github.com/FalkorDB/falkordb-browser).
 
 ## Overview
 
-The FalkorDB Browser can use text-to-cypher-node to provide a natural language interface for querying graphs. Users can ask questions in plain English instead of writing Cypher queries.
+The FalkorDB Browser can use @falkordb/text-to-cypher to provide a natural language interface for querying graphs. Users can ask questions in plain English instead of writing Cypher queries.
 
 ## Installation
 
 In your FalkorDB Browser project:
 
 ```bash
-npm install @falkordb/text-to-cypher-node
+npm install @falkordb/text-to-cypher
 ```
 
 ## Backend Integration (Node.js/Express)
@@ -20,7 +20,7 @@ npm install @falkordb/text-to-cypher-node
 
 ```typescript
 // services/textToCypherService.ts
-import { TextToCypher, TextToCypherResponse } from '@falkordb/text-to-cypher-node';
+import { TextToCypher, TextToCypherResponse } from '@falkordb/text-to-cypher';
 
 export class TextToCypherService {
   private client: TextToCypher;

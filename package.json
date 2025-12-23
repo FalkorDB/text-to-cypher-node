@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/FalkorDB/text-to-cypher-node#readme",
   "napi": {
-    "name": "text-to-cypher-node",
+    "name": "text-to-cypher",
     "triples": {
       "defaults": true,
       "additional": [
