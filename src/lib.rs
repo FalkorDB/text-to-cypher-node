@@ -79,7 +79,6 @@ impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
 /// ```
 #[napi]
 pub struct TextToCypher {
-    runtime: tokio::runtime::Runtime,
     client: TextToCypherClient,
 }
 
@@ -102,16 +101,13 @@ impl TextToCypher {
     /// ```
     #[napi(constructor)]
     pub fn new(options: ClientOptions) -> Result<Self> {
-        let runtime = tokio::runtime::Runtime::new()
-            .map_err(|e| Error::from_reason(format!("Failed to create tokio runtime: {}", e)))?;
-
         let client = TextToCypherClient::new(
             options.model,
             options.api_key,
             options.falkordb_connection,
         );
 
-        Ok(Self { runtime, client })
+        Ok(Self { client })
     }
 
     /// Converts natural language text to Cypher and executes the query
@@ -154,11 +150,7 @@ impl TextToCypher {
             }],
         };
 
-        let result = self.runtime.block_on(async {
-            self.client.text_to_cypher(graph_name, request).await
-        });
-
-        match result {
+        match self.client.text_to_cypher(graph_name, request).await {
             Ok(response) => Ok(response.into()),
             Err(e) => Err(Error::from_reason(format!("Text-to-Cypher failed: {}", e))),
         }
@@ -212,11 +204,7 @@ impl TextToCypher {
             messages: chat_messages,
         };
 
-        let result = self.runtime.block_on(async {
-            self.client.text_to_cypher(graph_name, request).await
-        });
-
-        match result {
+        match self.client.text_to_cypher(graph_name, request).await {
             Ok(response) => Ok(response.into()),
             Err(e) => Err(Error::from_reason(format!("Text-to-Cypher failed: {}", e))),
         }
@@ -255,11 +243,7 @@ impl TextToCypher {
             }],
         };
 
-        let result = self
-            .runtime
-            .block_on(async { self.client.cypher_only(graph_name, request).await });
-
-        match result {
+        match self.client.cypher_only(graph_name, request).await {
             Ok(response) => Ok(response.into()),
             Err(e) => Err(Error::from_reason(format!("Cypher generation failed: {}", e))),
         }
@@ -283,11 +267,7 @@ impl TextToCypher {
     /// ```
     #[napi]
     pub async fn discover_schema(&self, graph_name: String) -> Result<String> {
-        let result = self
-            .runtime
-            .block_on(async { self.client.discover_schema(graph_name).await });
-
-        match result {
+        match self.client.discover_schema(graph_name).await {
             Ok(schema) => Ok(schema),
             Err(e) => Err(Error::from_reason(format!("Schema discovery failed: {}", e))),
         }
