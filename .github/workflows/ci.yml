@@ -127,11 +127,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: bindings-*-apple-darwin
-          path: artifacts
+          path: .
           merge-multiple: true
 
-      - name: Move artifacts to root
-        run: cp artifacts/*.node . && ls -la *.node
+      - name: List downloaded files
+        run: ls -la *.node
 
       - name: Combine binaries
         run: npm run universal
