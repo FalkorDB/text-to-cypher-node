@@ -1,0 +1,84 @@
+{
+  "name": "@falkordb/text-to-cypher",
+  "version": "0.1.1",
+  "description": "Node.js bindings for FalkorDB text-to-cypher library - Convert natural language to Cypher queries",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FalkorDB/text-to-cypher-node.git"
+  },
+  "keywords": [
+    "falkordb",
+    "cypher",
+    "graph",
+    "database",
+    "nlp",
+    "ai",
+    "text-to-cypher",
+    "napi-rs"
+  ],
+  "author": "FalkorDB",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FalkorDB/text-to-cypher-node/issues"
+  },
+  "homepage": "https://github.com/FalkorDB/text-to-cypher-node#readme",
+  "napi": {
+    "name": "text-to-cypher",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "x86_64-pc-windows-msvc"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">= 16"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "universal": "napi universal",
+    "version": "napi version",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .ts,.js"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.0",
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "INTEGRATION.md",
+    "examples/"
+  ],
+  "packageManager": "npm@9.6.7",
+  "optionalDependencies": {
+    "@falkordb/text-to-cypher-win32-x64-msvc": "0.1.1",
+    "@falkordb/text-to-cypher-darwin-x64": "0.1.1",
+    "@falkordb/text-to-cypher-linux-x64-gnu": "0.1.1",
+    "@falkordb/text-to-cypher-linux-x64-musl": "0.1.1",
+    "@falkordb/text-to-cypher-linux-arm64-gnu": "0.1.1",
+    "@falkordb/text-to-cypher-linux-arm64-musl": "0.1.1",
+    "@falkordb/text-to-cypher-darwin-arm64": "0.1.1"
+  }
+}
