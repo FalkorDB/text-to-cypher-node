@@ -195,6 +195,31 @@ Releases are automated through GitHub Actions when a version tag is pushed:
 4. Create and push tag: `git tag v0.2.0 && git push origin v0.2.0`
 5. GitHub Actions will build and publish to npm
 
+### npm Publishing Setup
+
+The release workflow uses **npm Trusted Publishing (OIDC-based authentication)** instead of traditional access tokens. To set this up:
+
+1. **On npm (one-time setup)**:
+   - Go to your package settings on npmjs.com
+   - Navigate to "Publishing access" → "Automation tokens"
+   - Click "Configure trusted publishers"
+   - Add GitHub as a trusted publisher with:
+     - **Provider**: GitHub Actions
+     - **Repository**: FalkorDB/text-to-cypher-node
+     - **Workflow**: release.yml
+     - **Environment**: (leave empty or specify if using environments)
+
+2. **On GitHub**:
+   - Still requires `NPM_TOKEN` secret for backward compatibility
+   - The workflow uses `NODE_AUTH_TOKEN` with OIDC permissions
+   - Permissions are automatically granted through `id-token: write`
+
+This approach provides better security as:
+- No long-lived tokens are needed
+- Authentication is scoped to specific workflows
+- Automatic token rotation
+- Built-in provenance attestation
+
 ## Reporting Bugs
 
 When reporting bugs, please include:

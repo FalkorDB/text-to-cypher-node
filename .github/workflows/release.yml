@@ -153,6 +153,9 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      id-token: write
     needs:
       - build
       - universal-macOS
@@ -184,11 +187,9 @@ jobs:
       - name: Publish to npm
         run: |
           npm config set provenance true
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
           npm publish --access public
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
