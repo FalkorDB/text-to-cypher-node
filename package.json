@@ -1,6 +1,6 @@
 {
   "name": "@falkordb/text-to-cypher",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Node.js bindings for FalkorDB text-to-cypher library - Convert natural language to Cypher queries",
   "main": "index.js",
   "types": "index.d.ts",
