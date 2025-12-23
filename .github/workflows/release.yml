@@ -142,6 +142,9 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Move artifacts to root
+        run: cp artifacts/*.node . && ls -la *.node
+
       - name: Combine binaries
         run: npm run universal
 
