@@ -108,6 +108,8 @@ jobs:
     needs:
       - build
     runs-on: macos-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
