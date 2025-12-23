@@ -1,0 +1,38 @@
+# Build artifacts
+target/
+*.node
+!*.node
+node_modules/
+
+# Tests
+__test__/
+coverage/
+*.test.ts
+*.test.js
+
+# Config files
+.github/
+.prettierrc
+vitest.config.ts
+tsconfig.json
+
+# Source
+src/
+Cargo.toml
+Cargo.lock
+build.rs
+
+# Documentation (except what's in files list)
+CONTRIBUTING.md
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+.env.local

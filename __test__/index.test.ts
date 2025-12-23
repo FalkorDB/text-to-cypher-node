@@ -104,5 +104,15 @@ describe('TextToCypher', () => {
         client.textToCypherWithMessages('test', messages)
       ).rejects.toThrow();
     });
+
+    it('should reject invalid message roles', async () => {
+      const messages = [
+        { role: 'invalid-role', content: 'Hello' }
+      ];
+
+      await expect(
+        client.textToCypherWithMessages('test', messages)
+      ).rejects.toThrow(/Invalid message role/);
+    });
   });
 });

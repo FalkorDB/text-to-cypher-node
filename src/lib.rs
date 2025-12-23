@@ -184,24 +184,29 @@ impl TextToCypher {
         graph_name: String,
         messages: Vec<Message>,
     ) -> Result<TextToCypherResponse> {
-        let chat_messages: Vec<ChatMessage> = messages
+        let chat_messages: Result<Vec<ChatMessage>> = messages
             .into_iter()
             .map(|msg| {
                 let role = match msg.role.to_lowercase().as_str() {
                     "user" => ChatRole::User,
                     "assistant" => ChatRole::Assistant,
                     "system" => ChatRole::System,
-                    _ => ChatRole::User, // Default to User if unknown
+                    _ => {
+                        return Err(Error::from_reason(format!(
+                            "Invalid message role: '{}'. Must be 'user', 'assistant', or 'system'",
+                            msg.role
+                        )))
+                    }
                 };
-                ChatMessage {
+                Ok(ChatMessage {
                     role,
                     content: msg.content,
-                }
+                })
             })
             .collect();
 
         let request = ChatRequest {
-            messages: chat_messages,
+            messages: chat_messages?,
         };
 
         match self.client.text_to_cypher(graph_name, request).await {
