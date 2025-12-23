@@ -77,10 +77,10 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          path: text-to-cypher-node.*.node
           if-no-files-found: error
 
   test-binding:
@@ -115,7 +115,7 @@ jobs:
         run: npm install
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: .
@@ -127,7 +127,4 @@ jobs:
       - name: Test bindings
         run: npm test
 
-env:
-  DEBUG: napi:*
-  APP_NAME: text-to-cypher-node
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
+
