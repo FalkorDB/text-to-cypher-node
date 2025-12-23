@@ -20,6 +20,8 @@ Node.js bindings for the [FalkorDB text-to-cypher](https://github.com/FalkorDB/t
 npm install @falkordb/text-to-cypher-node
 ```
 
+**📚 New to this library? Check out the [Quick Start Guide](QUICKSTART.md) for a 5-minute introduction!**
+
 ## Quick Start
 
 ```javascript
