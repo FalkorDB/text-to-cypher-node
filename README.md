@@ -235,7 +235,7 @@ try {
 
 ## Requirements
 
-- Node.js >= 10
+- Node.js >= 20
 - FalkorDB instance running and accessible
 - API key for your chosen AI provider (OpenAI, Anthropic, etc.)
 
@@ -257,7 +257,7 @@ npm test
 ### Prerequisites for Building
 
 - Rust toolchain (install from [rustup.rs](https://rustup.rs/))
-- Node.js >= 10
+- Node.js >= 20
 - C++ compiler (platform-specific)
 
 ## Platform Support
