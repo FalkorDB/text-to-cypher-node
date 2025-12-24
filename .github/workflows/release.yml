@@ -145,6 +145,12 @@ jobs:
       - name: List downloaded files
         run: ls -la *.node
 
+      - name: Rename binaries for universal build
+        run: |
+          mv text-to-cypher.x86_64-apple-darwin.node text-to-cypher.darwin-x64.node || true
+          mv text-to-cypher.aarch64-apple-darwin.node text-to-cypher.darwin-arm64.node || true
+          ls -la *.node
+
       - name: Combine binaries
         run: npm run universal
 
