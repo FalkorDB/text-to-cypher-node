@@ -14,7 +14,7 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              npm run build
+              npm run build -- --target x86_64-apple-darwin
               strip -x *.node
               echo "Files created by x86_64-apple-darwin build:"
               ls -lh *.node || echo "No .node files found"
