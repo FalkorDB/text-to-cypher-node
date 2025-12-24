@@ -156,67 +156,99 @@ jobs:
           echo "========================================"
           echo ""
           
-          # List all .node files recursively
-          echo "Step 1: Finding all .node files (recursively)"
-          find . -name "*.node" -type f -exec ls -lh {} \; || echo "No .node files found"
+          # Show complete directory structure first
+          echo "Step 1: Complete directory structure"
+          echo "pwd: $(pwd)"
+          echo ""
+          echo "Full recursive listing:"
+          ls -laR
+          echo ""
+          
+          # List all .node files recursively with full paths
+          echo "Step 2: Finding all .node files (with full paths)"
+          node_files=$(find . -name "*.node" -type f 2>/dev/null)
+          if [ -z "$node_files" ]; then
+            echo "  ⚠ WARNING: NO .node files found anywhere!"
+          else
+            echo "$node_files" | while read file; do
+              size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "?")
+              echo "  Found: $file ($size bytes)"
+            done
+          fi
           echo ""
           
           # Move any .node files from subdirectories to current directory
-          echo "Step 2: Moving .node files to current directory"
-          find . -name "*.node" -type f -not -path "./*.node" | while read file; do
+          echo "Step 3: Moving .node files to current directory"
+          moved=0
+          find . -name "*.node" -type f -not -path "./*.node" 2>/dev/null | while read file; do
             filename=$(basename "$file")
             echo "  Moving: $file → ./$filename"
-            cp "$file" "./$filename"
+            mv "$file" "./$filename" 2>&1 && moved=$((moved + 1)) || echo "    ERROR: Failed to move file"
           done
+          if [ $moved -eq 0 ]; then
+            echo "  No files needed moving (either none found or already in current dir)"
+          fi
           echo ""
           
           # List .node files in current directory
-          echo "Step 3: Current directory .node files"
-          ls -lh *.node 2>&1 || echo "No .node files in current directory"
+          echo "Step 4: Files in current directory after move"
+          ls -lh *.node 2>&1 || echo "  ⚠ WARNING: No .node files in current directory!"
           echo ""
           
           # Check what files we have and rename if needed
-          echo "Step 4: Checking and renaming files for napi universal"
-          
-          # Handle all possible filename patterns
-          for file in *.node; do
-            [ -f "$file" ] || continue
+          echo "Step 5: Checking and renaming files for napi universal"
+          processed=0
+          for file in *.node 2>/dev/null; do
+            [ -f "$file" ] || { echo "  No .node files to process"; break; }
+            processed=1
             echo "  Processing: $file"
             
             case "$file" in
               text-to-cypher.x86_64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-x64.node
-                echo "    → Renamed to: text-to-cypher.darwin-x64.node"
+                mv "$file" text-to-cypher.darwin-x64.node 2>&1 && \
+                  echo "    → Renamed to: text-to-cypher.darwin-x64.node" || \
+                  echo "    ERROR: Failed to rename"
                 ;;
               text-to-cypher.aarch64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-arm64.node
-                echo "    → Renamed to: text-to-cypher.darwin-arm64.node"
+                mv "$file" text-to-cypher.darwin-arm64.node 2>&1 && \
+                  echo "    → Renamed to: text-to-cypher.darwin-arm64.node" || \
+                  echo "    ERROR: Failed to rename"
                 ;;
-              text-to-cypher.darwin-x64.node|text-to-cypher.darwin-arm64.node)
-                echo "    → Already has correct name"
+              text-to-cypher.darwin-x64.node)
+                echo "    → Already has correct name (x64)"
+                ;;
+              text-to-cypher.darwin-arm64.node)
+                echo "    → Already has correct name (arm64)"
                 ;;
               *)
-                echo "    → Unknown file, keeping as is"
+                echo "    → UNEXPECTED: Unknown file: $file"
                 ;;
             esac
           done
+          if [ $processed -eq 0 ]; then
+            echo "  ⚠ WARNING: No files were processed!"
+          fi
           echo ""
           
           # Final verification
-          echo "Step 5: Final verification"
+          echo "Step 6: Final verification before running napi universal"
           if [ -f "text-to-cypher.darwin-x64.node" ]; then
-            echo "  ✓ text-to-cypher.darwin-x64.node ($(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node") bytes)"
+            size=$(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node" 2>/dev/null || echo "unknown")
+            echo "  ✓ text-to-cypher.darwin-x64.node ($size bytes)"
           else
             echo "  ✗ MISSING: text-to-cypher.darwin-x64.node"
           fi
           
           if [ -f "text-to-cypher.darwin-arm64.node" ]; then
-            echo "  ✓ text-to-cypher.darwin-arm64.node ($(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node") bytes)"
+            size=$(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node" 2>/dev/null || echo "unknown")
+            echo "  ✓ text-to-cypher.darwin-arm64.node ($size bytes)"
           else
             echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node"
           fi
           
           echo ""
+          echo "All .node files in current directory:"
+          ls -lh *.node 2>&1 || echo "  No .node files found"
           echo "========================================"
           
       - name: Combine binaries
