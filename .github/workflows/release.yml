@@ -140,7 +140,6 @@ jobs:
         with:
           pattern: bindings-*-apple-darwin
           merge-multiple: true
-          path: .
 
       - name: List downloaded artifacts (detailed)
         run: |
