@@ -14,7 +14,7 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              npm run build -- --target x86_64-apple-darwin
+              npm run build
               strip -x *.node
           - host: macos-latest
             target: aarch64-apple-darwin
