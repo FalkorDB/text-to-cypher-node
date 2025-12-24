@@ -316,6 +316,17 @@ jobs:
       - name: Combine binaries
         run: |
           echo "========================================"
+          echo "PRE-CHECK: Files before running napi universal"
+          echo "========================================"
+          echo "Current directory: $(pwd)"
+          echo "All .node files:"
+          ls -lh *.node 2>&1 || echo "No .node files found"
+          echo ""
+          echo "Checking specific files:"
+          [ -f "text-to-cypher.darwin-x64.node" ] && echo "✓ text-to-cypher.darwin-x64.node exists" || echo "✗ text-to-cypher.darwin-x64.node NOT FOUND"
+          [ -f "text-to-cypher.darwin-arm64.node" ] && echo "✓ text-to-cypher.darwin-arm64.node exists" || echo "✗ text-to-cypher.darwin-arm64.node NOT FOUND"
+          echo ""
+          echo "========================================"
           echo "RUNNING: npm run universal"
           echo "========================================"
           npm run universal
