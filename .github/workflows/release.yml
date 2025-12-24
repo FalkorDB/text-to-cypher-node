@@ -338,6 +338,19 @@ jobs:
           [ -f "npm/darwin-x64/text-to-cypher.darwin-x64.node" ] && echo "✓ npm/darwin-x64/text-to-cypher.darwin-x64.node exists" || echo "✗ npm/darwin-x64/text-to-cypher.darwin-x64.node NOT FOUND"
           [ -f "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" ] && echo "✓ npm/darwin-arm64/text-to-cypher.darwin-arm64.node exists" || echo "✗ npm/darwin-arm64/text-to-cypher.darwin-arm64.node NOT FOUND"
           echo ""
+          
+          echo "========================================"
+          echo "Copying binaries to current directory for napi universal"
+          echo "========================================"
+          cp npm/darwin-x64/text-to-cypher.darwin-x64.node ./text-to-cypher.darwin-x64.node
+          cp npm/darwin-arm64/text-to-cypher.darwin-arm64.node ./text-to-cypher.darwin-arm64.node
+          echo "✓ Copied npm/darwin-x64/text-to-cypher.darwin-x64.node → ./text-to-cypher.darwin-x64.node"
+          echo "✓ Copied npm/darwin-arm64/text-to-cypher.darwin-arm64.node → ./text-to-cypher.darwin-arm64.node"
+          echo ""
+          echo "Files in current directory:"
+          ls -lh text-to-cypher.*.node
+          echo ""
+          
           echo "========================================"
           echo "RUNNING: npm run universal"
           echo "========================================"
