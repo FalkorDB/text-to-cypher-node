@@ -225,8 +225,15 @@ jobs:
           has_x64=false
           has_arm64=false
           
-          # Check what files we have and rename if needed
-          echo "Step 5: Checking and renaming files for napi universal"
+          # Create npm platform directories for napi universal
+          echo "Step 5: Creating npm platform directory structure"
+          mkdir -p npm/darwin-x64 npm/darwin-arm64
+          echo "  ✓ Created npm/darwin-x64/"
+          echo "  ✓ Created npm/darwin-arm64/"
+          echo ""
+          
+          # Check what files we have and move to correct platform directories
+          echo "Step 6: Organizing files into npm platform directories"
           for file in *.node; do
             [ -f "$file" ] || {
               echo "  ⚠ ERROR: No .node files to process"
@@ -236,21 +243,23 @@ jobs:
             
             case "$file" in
               text-to-cypher.x86_64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-x64.node
-                echo "    ✓ Renamed to: text-to-cypher.darwin-x64.node"
+                mv "$file" npm/darwin-x64/text-to-cypher.darwin-x64.node
+                echo "    ✓ Moved to: npm/darwin-x64/text-to-cypher.darwin-x64.node"
                 has_x64=true
                 ;;
               text-to-cypher.aarch64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-arm64.node
-                echo "    ✓ Renamed to: text-to-cypher.darwin-arm64.node"
+                mv "$file" npm/darwin-arm64/text-to-cypher.darwin-arm64.node
+                echo "    ✓ Moved to: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
                 has_arm64=true
                 ;;
               text-to-cypher.darwin-x64.node)
-                echo "    ✓ Already has correct name (x64)"
+                mv "$file" npm/darwin-x64/text-to-cypher.darwin-x64.node
+                echo "    ✓ Moved to: npm/darwin-x64/text-to-cypher.darwin-x64.node"
                 has_x64=true
                 ;;
               text-to-cypher.darwin-arm64.node)
-                echo "    ✓ Already has correct name (arm64)"
+                mv "$file" npm/darwin-arm64/text-to-cypher.darwin-arm64.node
+                echo "    ✓ Moved to: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
                 has_arm64=true
                 ;;
               *)
@@ -261,28 +270,28 @@ jobs:
           echo ""
           
           # Final verification
-          echo "Step 6: Final verification before running napi universal"
+          echo "Step 7: Final verification before running napi universal"
           missing_files=()
           
-          if [ -f "text-to-cypher.darwin-x64.node" ]; then
-            size=$(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node" 2>/dev/null || echo "unknown")
-            echo "  ✓ text-to-cypher.darwin-x64.node ($size bytes)"
+          if [ -f "npm/darwin-x64/text-to-cypher.darwin-x64.node" ]; then
+            size=$(stat -f%z "npm/darwin-x64/text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "npm/darwin-x64/text-to-cypher.darwin-x64.node" 2>/dev/null || echo "unknown")
+            echo "  ✓ npm/darwin-x64/text-to-cypher.darwin-x64.node ($size bytes)"
           else
-            echo "  ✗ MISSING: text-to-cypher.darwin-x64.node"
-            missing_files+=("text-to-cypher.darwin-x64.node")
+            echo "  ✗ MISSING: npm/darwin-x64/text-to-cypher.darwin-x64.node"
+            missing_files+=("npm/darwin-x64/text-to-cypher.darwin-x64.node")
           fi
           
-          if [ -f "text-to-cypher.darwin-arm64.node" ]; then
-            size=$(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node" 2>/dev/null || echo "unknown")
-            echo "  ✓ text-to-cypher.darwin-arm64.node ($size bytes)"
+          if [ -f "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" ]; then
+            size=$(stat -f%z "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" 2>/dev/null || echo "unknown")
+            echo "  ✓ npm/darwin-arm64/text-to-cypher.darwin-arm64.node ($size bytes)"
           else
-            echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node"
-            missing_files+=("text-to-cypher.darwin-arm64.node")
+            echo "  ✗ MISSING: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
+            missing_files+=("npm/darwin-arm64/text-to-cypher.darwin-arm64.node")
           fi
           
           echo ""
-          echo "All .node files in current directory:"
-          ls -lh *.node 2>&1 || echo "  No .node files found"
+          echo "Files in npm platform directories:"
+          ls -lhR npm/ 2>&1 || echo "  No npm directory found"
           echo ""
           
           # Show which artifacts were downloaded
@@ -298,7 +307,10 @@ jobs:
             echo "❌ ERROR: Required binaries are missing!"
             echo "Missing files: ${missing_files[*]}"
             echo ""
-            echo "The 'napi universal' command requires both darwin-x64 and darwin-arm64 binaries."
+            echo "The 'napi universal' command requires both darwin-x64 and darwin-arm64 binaries"
+            echo "in the npm platform directory structure:"
+            echo "  - npm/darwin-x64/text-to-cypher.darwin-x64.node"
+            echo "  - npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
             echo ""
             echo "Available artifacts should match pattern: bindings-*-apple-darwin"
             echo "Expected artifact names:"
@@ -308,7 +320,7 @@ jobs:
           fi
           
           echo ""
-          echo "✓ All required binaries are present and ready for universal binary creation"
+          echo "✓ All required binaries are present in npm platform directories and ready for universal binary creation"
           
           echo ""
           echo "========================================"
@@ -319,12 +331,12 @@ jobs:
           echo "PRE-CHECK: Files before running napi universal"
           echo "========================================"
           echo "Current directory: $(pwd)"
-          echo "All .node files:"
-          ls -lh *.node 2>&1 || echo "No .node files found"
+          echo "npm platform directories:"
+          ls -lhR npm/ 2>&1 || echo "No npm directory found"
           echo ""
           echo "Checking specific files:"
-          [ -f "text-to-cypher.darwin-x64.node" ] && echo "✓ text-to-cypher.darwin-x64.node exists" || echo "✗ text-to-cypher.darwin-x64.node NOT FOUND"
-          [ -f "text-to-cypher.darwin-arm64.node" ] && echo "✓ text-to-cypher.darwin-arm64.node exists" || echo "✗ text-to-cypher.darwin-arm64.node NOT FOUND"
+          [ -f "npm/darwin-x64/text-to-cypher.darwin-x64.node" ] && echo "✓ npm/darwin-x64/text-to-cypher.darwin-x64.node exists" || echo "✗ npm/darwin-x64/text-to-cypher.darwin-x64.node NOT FOUND"
+          [ -f "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" ] && echo "✓ npm/darwin-arm64/text-to-cypher.darwin-arm64.node exists" || echo "✗ npm/darwin-arm64/text-to-cypher.darwin-arm64.node NOT FOUND"
           echo ""
           echo "========================================"
           echo "RUNNING: npm run universal"
