@@ -142,14 +142,21 @@ jobs:
           path: .
           merge-multiple: true
 
-      - name: List downloaded files
+      - name: Prepare binaries for universal build
         run: |
           echo "Current directory: $(pwd)"
-          echo "All files:"
+          echo "All .node files in workspace:"
           find . -name "*.node" -type f
-          echo "Files in current dir:"
-          ls -la *.node 2>&1 || echo "No .node files in current directory"
-
+          echo ""
+          echo "Copying and renaming binaries to expected names..."
+          # Find and copy x86_64 binary
+          find . -name "*.x86_64-apple-darwin.node" -exec cp {} ./text-to-cypher.darwin-x64.node \;
+          # Find and copy aarch64 binary
+          find . -name "*.aarch64-apple-darwin.node" -exec cp {} ./text-to-cypher.darwin-arm64.node \;
+          echo ""
+          echo "Files in current directory after renaming:"
+          ls -la *.node 2>&1 || echo "No .node files found!"
+          
       - name: Combine binaries
         run: npm run universal
 
