@@ -147,6 +147,20 @@ jobs:
           echo "Downloaded artifacts:"
           ls -la *.node || echo "No .node files found"
           
+      - name: Prepare binaries for universal build
+        run: |
+          # Rename binaries to the format napi universal expects
+          if [ -f "text-to-cypher.x86_64-apple-darwin.node" ]; then
+            mv text-to-cypher.x86_64-apple-darwin.node text-to-cypher.darwin-x64.node
+            echo "Renamed x86_64-apple-darwin to darwin-x64"
+          fi
+          if [ -f "text-to-cypher.aarch64-apple-darwin.node" ]; then
+            mv text-to-cypher.aarch64-apple-darwin.node text-to-cypher.darwin-arm64.node
+            echo "Renamed aarch64-apple-darwin to darwin-arm64"
+          fi
+          echo "Prepared binaries:"
+          ls -la text-to-cypher.darwin-*.node || echo "No darwin binaries found"
+          
       - name: Combine binaries
         run: npm run universal
 
