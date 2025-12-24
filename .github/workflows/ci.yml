@@ -127,16 +127,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: bindings-*-apple-darwin
-          path: artifacts
+          path: .
           merge-multiple: true
 
       - name: List downloaded artifacts
         run: |
           echo "Downloaded artifacts:"
-          ls -laR artifacts/ || echo "No artifacts directory"
+          ls -la *.node || echo "No .node files found"
           
       - name: Combine binaries
-        run: npx napi universal --dir artifacts
+        run: npm run universal
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
