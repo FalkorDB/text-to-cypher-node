@@ -151,6 +151,7 @@ jobs:
           
       - name: Prepare binaries for universal build
         run: |
+          set -e  # Exit on error
           echo "========================================"
           echo "PREPARING BINARIES FOR UNIVERSAL BUILD"
           echo "========================================"
@@ -166,9 +167,17 @@ jobs:
           
           # List all .node files recursively with full paths
           echo "Step 2: Finding all .node files (with full paths)"
-          node_files=$(find . -name "*.node" -type f 2>/dev/null)
+          node_files=$(find . -name "*.node" -type f 2>/dev/null || true)
           if [ -z "$node_files" ]; then
-            echo "  ⚠ WARNING: NO .node files found anywhere!"
+            echo "  ⚠ ERROR: NO .node files found anywhere!"
+            echo ""
+            echo "This means artifacts were not downloaded correctly."
+            echo "Expected to find files like:"
+            echo "  - text-to-cypher.darwin-x64.node"
+            echo "  - text-to-cypher.darwin-arm64.node"
+            echo "  - text-to-cypher.x86_64-apple-darwin.node"
+            echo "  - text-to-cypher.aarch64-apple-darwin.node"
+            exit 1
           else
             echo "$node_files" | while read file; do
               size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "?")
@@ -179,64 +188,65 @@ jobs:
           
           # Move any .node files from subdirectories to current directory
           echo "Step 3: Moving .node files to current directory"
-          moved=0
-          find . -name "*.node" -type f -not -path "./*.node" 2>/dev/null | while read file; do
-            filename=$(basename "$file")
-            echo "  Moving: $file → ./$filename"
-            mv "$file" "./$filename" 2>&1 && moved=$((moved + 1)) || echo "    ERROR: Failed to move file"
-          done
-          if [ $moved -eq 0 ]; then
-            echo "  No files needed moving (either none found or already in current dir)"
-          fi
+          while IFS= read -r file; do
+            if [ -n "$file" ] && [ "$file" != "./*.node" ]; then
+              filename=$(basename "$file")
+              echo "  Moving: $file → ./$filename"
+              mv "$file" "./$filename"
+              echo "    ✓ Moved successfully"
+            fi
+          done < <(find . -name "*.node" -type f -not -path "./*.node" 2>/dev/null || true)
           echo ""
           
           # List .node files in current directory
           echo "Step 4: Files in current directory after move"
-          ls -lh *.node 2>&1 || echo "  ⚠ WARNING: No .node files in current directory!"
+          ls -lh *.node 2>&1 || {
+            echo "  ⚠ ERROR: No .node files in current directory after move!"
+            exit 1
+          }
           echo ""
           
           # Check what files we have and rename if needed
           echo "Step 5: Checking and renaming files for napi universal"
-          processed=0
-          for file in *.node 2>/dev/null; do
-            [ -f "$file" ] || { echo "  No .node files to process"; break; }
-            processed=1
+          for file in *.node; do
+            [ -f "$file" ] || {
+              echo "  ⚠ ERROR: No .node files to process"
+              exit 1
+            }
             echo "  Processing: $file"
             
             case "$file" in
               text-to-cypher.x86_64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-x64.node 2>&1 && \
-                  echo "    → Renamed to: text-to-cypher.darwin-x64.node" || \
-                  echo "    ERROR: Failed to rename"
+                mv "$file" text-to-cypher.darwin-x64.node
+                echo "    ✓ Renamed to: text-to-cypher.darwin-x64.node"
                 ;;
               text-to-cypher.aarch64-apple-darwin.node)
-                mv "$file" text-to-cypher.darwin-arm64.node 2>&1 && \
-                  echo "    → Renamed to: text-to-cypher.darwin-arm64.node" || \
-                  echo "    ERROR: Failed to rename"
+                mv "$file" text-to-cypher.darwin-arm64.node
+                echo "    ✓ Renamed to: text-to-cypher.darwin-arm64.node"
                 ;;
               text-to-cypher.darwin-x64.node)
-                echo "    → Already has correct name (x64)"
+                echo "    ✓ Already has correct name (x64)"
                 ;;
               text-to-cypher.darwin-arm64.node)
-                echo "    → Already has correct name (arm64)"
+                echo "    ✓ Already has correct name (arm64)"
                 ;;
               *)
-                echo "    → UNEXPECTED: Unknown file: $file"
+                echo "    ⚠ WARNING: Unexpected file: $file (will be ignored by napi universal)"
                 ;;
             esac
           done
-          if [ $processed -eq 0 ]; then
-            echo "  ⚠ WARNING: No files were processed!"
-          fi
           echo ""
           
           # Final verification
           echo "Step 6: Final verification before running napi universal"
+          missing_files=()
+          
           if [ -f "text-to-cypher.darwin-x64.node" ]; then
             size=$(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node" 2>/dev/null || echo "unknown")
             echo "  ✓ text-to-cypher.darwin-x64.node ($size bytes)"
           else
             echo "  ✗ MISSING: text-to-cypher.darwin-x64.node"
+            missing_files+=("text-to-cypher.darwin-x64.node")
           fi
           
           if [ -f "text-to-cypher.darwin-arm64.node" ]; then
@@ -244,12 +254,26 @@ jobs:
             echo "  ✓ text-to-cypher.darwin-arm64.node ($size bytes)"
           else
             echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node"
+            missing_files+=("text-to-cypher.darwin-arm64.node")
           fi
           
           echo ""
           echo "All .node files in current directory:"
           ls -lh *.node 2>&1 || echo "  No .node files found"
           echo "========================================"
+          
+          # Fail if any required files are missing
+          if [ ${#missing_files[@]} -gt 0 ]; then
+            echo ""
+            echo "❌ ERROR: Required binaries are missing!"
+            echo "Missing files: ${missing_files[*]}"
+            echo ""
+            echo "The 'napi universal' command requires both darwin-x64 and darwin-arm64 binaries."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✓ All required binaries are present and ready for universal binary creation"
           
       - name: Combine binaries
         run: |
