@@ -156,65 +156,66 @@ jobs:
           echo "========================================"
           echo ""
           
-          # List all .node files that exist
-          echo "Step 1: Finding all .node files in current directory"
-          for file in *.node; do
-            if [ -f "$file" ]; then
-              echo "  Found: $file ($(stat -f%z "$file" 2>/dev/null || stat -c%s "$file") bytes)"
-            fi
+          # List all .node files recursively
+          echo "Step 1: Finding all .node files (recursively)"
+          find . -name "*.node" -type f -exec ls -lh {} \; || echo "No .node files found"
+          echo ""
+          
+          # Move any .node files from subdirectories to current directory
+          echo "Step 2: Moving .node files to current directory"
+          find . -name "*.node" -type f -not -path "./*.node" | while read file; do
+            filename=$(basename "$file")
+            echo "  Moving: $file → ./$filename"
+            cp "$file" "./$filename"
           done
           echo ""
           
-          # Check for expected input files
-          echo "Step 2: Checking for expected input files"
-          if [ -f "text-to-cypher.x86_64-apple-darwin.node" ]; then
-            echo "  ✓ Found: text-to-cypher.x86_64-apple-darwin.node"
-          else
-            echo "  ✗ NOT FOUND: text-to-cypher.x86_64-apple-darwin.node"
-          fi
-          
-          if [ -f "text-to-cypher.aarch64-apple-darwin.node" ]; then
-            echo "  ✓ Found: text-to-cypher.aarch64-apple-darwin.node"
-          else
-            echo "  ✗ NOT FOUND: text-to-cypher.aarch64-apple-darwin.node"
-          fi
+          # List .node files in current directory
+          echo "Step 3: Current directory .node files"
+          ls -lh *.node 2>&1 || echo "No .node files in current directory"
           echo ""
           
-          # Perform renaming
-          echo "Step 3: Renaming binaries to napi universal expected format"
-          if [ -f "text-to-cypher.x86_64-apple-darwin.node" ]; then
-            mv text-to-cypher.x86_64-apple-darwin.node text-to-cypher.darwin-x64.node
-            echo "  ✓ Renamed: x86_64-apple-darwin → darwin-x64"
-          else
-            echo "  ⚠ SKIP: x86_64-apple-darwin not found, cannot rename"
-          fi
+          # Check what files we have and rename if needed
+          echo "Step 4: Checking and renaming files for napi universal"
           
-          if [ -f "text-to-cypher.aarch64-apple-darwin.node" ]; then
-            mv text-to-cypher.aarch64-apple-darwin.node text-to-cypher.darwin-arm64.node
-            echo "  ✓ Renamed: aarch64-apple-darwin → darwin-arm64"
-          else
-            echo "  ⚠ SKIP: aarch64-apple-darwin not found, cannot rename"
-          fi
+          # Handle all possible filename patterns
+          for file in *.node; do
+            [ -f "$file" ] || continue
+            echo "  Processing: $file"
+            
+            case "$file" in
+              text-to-cypher.x86_64-apple-darwin.node)
+                mv "$file" text-to-cypher.darwin-x64.node
+                echo "    → Renamed to: text-to-cypher.darwin-x64.node"
+                ;;
+              text-to-cypher.aarch64-apple-darwin.node)
+                mv "$file" text-to-cypher.darwin-arm64.node
+                echo "    → Renamed to: text-to-cypher.darwin-arm64.node"
+                ;;
+              text-to-cypher.darwin-x64.node|text-to-cypher.darwin-arm64.node)
+                echo "    → Already has correct name"
+                ;;
+              *)
+                echo "    → Unknown file, keeping as is"
+                ;;
+            esac
+          done
           echo ""
           
-          # Verify expected output files exist
-          echo "Step 4: Verifying expected output files for napi universal"
+          # Final verification
+          echo "Step 5: Final verification"
           if [ -f "text-to-cypher.darwin-x64.node" ]; then
-            echo "  ✓ READY: text-to-cypher.darwin-x64.node ($(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node") bytes)"
+            echo "  ✓ text-to-cypher.darwin-x64.node ($(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node") bytes)"
           else
-            echo "  ✗ MISSING: text-to-cypher.darwin-x64.node - napi universal will FAIL!"
+            echo "  ✗ MISSING: text-to-cypher.darwin-x64.node"
           fi
           
           if [ -f "text-to-cypher.darwin-arm64.node" ]; then
-            echo "  ✓ READY: text-to-cypher.darwin-arm64.node ($(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node") bytes)"
+            echo "  ✓ text-to-cypher.darwin-arm64.node ($(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node") bytes)"
           else
-            echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node - napi universal will FAIL!"
+            echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node"
           fi
-          echo ""
           
-          # Final listing
-          echo "Step 5: Final state of all .node files"
-          ls -lh *.node 2>&1 || echo "No .node files present"
           echo ""
           echo "========================================"
           
