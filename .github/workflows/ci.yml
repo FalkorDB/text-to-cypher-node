@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-13
+          - host: macos-latest-large
             target: x86_64-apple-darwin
             build: |
               npm run build -- --target x86_64-apple-darwin
@@ -339,7 +339,7 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-13
+          - host: macos-latest-large
             target: x86_64-apple-darwin
           - host: macos-latest
             target: aarch64-apple-darwin
