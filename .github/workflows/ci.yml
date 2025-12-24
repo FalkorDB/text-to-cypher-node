@@ -14,38 +14,10 @@ jobs:
       matrix:
         settings:
           - host: macos-latest
-            target: x86_64-apple-darwin
-            build: |
-              npm run build -- --target x86_64-apple-darwin
-              strip -x *.node
-              echo "==================================="
-              echo "x86_64-apple-darwin build completed"
-              echo "==================================="
-              echo "All .node files in current directory:"
-              ls -lh *.node || echo "No .node files found"
-              echo ""
-              echo "Files matching upload pattern 'text-to-cypher.*.node':"
-              ls -lh text-to-cypher.*.node || echo "No files match pattern"
-              echo "==================================="
-          - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
-              export CC=$(xcrun -f clang);
-              export CXX=$(xcrun -f clang++);
-              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
-              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
-              npm run build -- --target aarch64-apple-darwin
+              npm run build
               strip -x *.node
-              echo "====================================="
-              echo "aarch64-apple-darwin build completed"
-              echo "====================================="
-              echo "All .node files in current directory:"
-              ls -lh *.node || echo "No .node files found"
-              echo ""
-              echo "Files matching upload pattern 'text-to-cypher.*.node':"
-              ls -lh text-to-cypher.*.node || echo "No files match pattern"
-              echo "====================================="
           - host: windows-latest
             build: npm run build
             target: x86_64-pc-windows-msvc
@@ -363,7 +335,7 @@ jobs:
       matrix:
         settings:
           - host: macos-latest
-            target: x86_64-apple-darwin
+            target: aarch64-apple-darwin
           - host: windows-latest
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
