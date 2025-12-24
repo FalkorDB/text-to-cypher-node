@@ -142,27 +142,107 @@ jobs:
           path: .
           merge-multiple: true
 
-      - name: List downloaded artifacts
+      - name: List downloaded artifacts (detailed)
         run: |
-          echo "Downloaded artifacts:"
-          ls -la *.node || echo "No .node files found"
+          echo "========================================"
+          echo "DOWNLOADED ARTIFACTS - DETAILED LISTING"
+          echo "========================================"
+          echo ""
+          echo "Current directory: $(pwd)"
+          echo ""
+          echo "All files in current directory:"
+          ls -laR
+          echo ""
+          echo "Looking for .node files specifically:"
+          find . -name "*.node" -type f -exec ls -lh {} \; || echo "No .node files found with find"
+          echo ""
+          echo "Direct ls of *.node pattern:"
+          ls -lh *.node 2>&1 || echo "No .node files found with ls *.node"
+          echo ""
+          echo "========================================"
           
       - name: Prepare binaries for universal build
         run: |
-          # Rename binaries to the format napi universal expects
+          echo "========================================"
+          echo "PREPARING BINARIES FOR UNIVERSAL BUILD"
+          echo "========================================"
+          echo ""
+          
+          # List all .node files that exist
+          echo "Step 1: Finding all .node files in current directory"
+          for file in *.node; do
+            if [ -f "$file" ]; then
+              echo "  Found: $file ($(stat -f%z "$file" 2>/dev/null || stat -c%s "$file") bytes)"
+            fi
+          done
+          echo ""
+          
+          # Check for expected input files
+          echo "Step 2: Checking for expected input files"
+          if [ -f "text-to-cypher.x86_64-apple-darwin.node" ]; then
+            echo "  ✓ Found: text-to-cypher.x86_64-apple-darwin.node"
+          else
+            echo "  ✗ NOT FOUND: text-to-cypher.x86_64-apple-darwin.node"
+          fi
+          
+          if [ -f "text-to-cypher.aarch64-apple-darwin.node" ]; then
+            echo "  ✓ Found: text-to-cypher.aarch64-apple-darwin.node"
+          else
+            echo "  ✗ NOT FOUND: text-to-cypher.aarch64-apple-darwin.node"
+          fi
+          echo ""
+          
+          # Perform renaming
+          echo "Step 3: Renaming binaries to napi universal expected format"
           if [ -f "text-to-cypher.x86_64-apple-darwin.node" ]; then
             mv text-to-cypher.x86_64-apple-darwin.node text-to-cypher.darwin-x64.node
-            echo "Renamed x86_64-apple-darwin to darwin-x64"
+            echo "  ✓ Renamed: x86_64-apple-darwin → darwin-x64"
+          else
+            echo "  ⚠ SKIP: x86_64-apple-darwin not found, cannot rename"
           fi
+          
           if [ -f "text-to-cypher.aarch64-apple-darwin.node" ]; then
             mv text-to-cypher.aarch64-apple-darwin.node text-to-cypher.darwin-arm64.node
-            echo "Renamed aarch64-apple-darwin to darwin-arm64"
+            echo "  ✓ Renamed: aarch64-apple-darwin → darwin-arm64"
+          else
+            echo "  ⚠ SKIP: aarch64-apple-darwin not found, cannot rename"
           fi
-          echo "Prepared binaries:"
-          ls -la text-to-cypher.darwin-*.node || echo "No darwin binaries found"
+          echo ""
+          
+          # Verify expected output files exist
+          echo "Step 4: Verifying expected output files for napi universal"
+          if [ -f "text-to-cypher.darwin-x64.node" ]; then
+            echo "  ✓ READY: text-to-cypher.darwin-x64.node ($(stat -f%z "text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-x64.node") bytes)"
+          else
+            echo "  ✗ MISSING: text-to-cypher.darwin-x64.node - napi universal will FAIL!"
+          fi
+          
+          if [ -f "text-to-cypher.darwin-arm64.node" ]; then
+            echo "  ✓ READY: text-to-cypher.darwin-arm64.node ($(stat -f%z "text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "text-to-cypher.darwin-arm64.node") bytes)"
+          else
+            echo "  ✗ MISSING: text-to-cypher.darwin-arm64.node - napi universal will FAIL!"
+          fi
+          echo ""
+          
+          # Final listing
+          echo "Step 5: Final state of all .node files"
+          ls -lh *.node 2>&1 || echo "No .node files present"
+          echo ""
+          echo "========================================"
           
       - name: Combine binaries
-        run: npm run universal
+        run: |
+          echo "========================================"
+          echo "RUNNING: npm run universal"
+          echo "========================================"
+          npm run universal
+          echo ""
+          echo "========================================"
+          echo "RESULT: Universal binary creation"
+          echo "========================================"
+          echo "Generated universal binary:"
+          ls -lh text-to-cypher.*.node || echo "No binaries found after universal command"
+          echo "========================================"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
