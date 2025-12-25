@@ -42,7 +42,8 @@ for (const platform of platforms) {
     // Run npm publish with provenance
     execSync('npm publish --access public --provenance', {
       cwd: platformDir,
-      stdio: 'inherit'
+      stdio: 'inherit',
+      env: process.env
     });
     
     console.log(`✅ Successfully published ${packageJson.name}\n`);
