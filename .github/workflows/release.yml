@@ -146,24 +146,33 @@ jobs:
             echo ""
           done
 
-      - name: Create npm directory structure
+      - name: Move artifacts to root
         run: |
-          echo "Creating npm platform directories..."
-          mkdir -p npm/{darwin-{x64,arm64},win32-x64-msvc,linux-{x64,arm64}-{gnu,musl}}
-          echo "Created directories:"
-          ls -la npm/
+          echo "Moving .node files from artifacts to root directory..."
+          # NAPI-RS expects the binaries in the root directory to bundle them
+          for dir in artifacts/*/; do
+            if [ -d "$dir" ]; then
+              echo "Processing $dir"
+              mv "$dir"/*.node . 2>/dev/null || true
+            fi
+          done
+          echo ""
+          echo "Files in root after moving artifacts:"
+          ls -la *.node || echo "No .node files found"
 
-      - name: Move artifacts to npm directories
+      - name: Run napi artifacts
         run: |
-          echo "Moving artifacts to npm directories..."
+          echo "Running napi artifacts to move binaries to platform-specific directories..."
           npm run artifacts
           echo ""
-          echo "npm directory structure after moving artifacts:"
-          for dir in npm/*/; do
-            echo "=== $dir ==="
-            ls -la "$dir"
-            echo ""
-          done
+          echo "npm directory structure after napi artifacts:"
+          if [ -d "npm" ]; then
+            for dir in npm/*/; do
+              echo "=== $dir ==="
+              ls -la "$dir"
+              echo ""
+            done
+          fi
 
       - name: Create npm package.json files
         run: |
@@ -192,13 +201,9 @@ jobs:
 
       - name: Publish platform packages to npm
         run: npm run publish-npm-packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish main package to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
