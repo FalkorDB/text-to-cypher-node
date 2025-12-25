@@ -1,0 +1,41 @@
+{
+  "name": "@falkordb/text-to-cypher-linux-x64-gnu",
+  "version": "0.1.3",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "text-to-cypher.linux-x64-gnu.node",
+  "files": [
+    "text-to-cypher.linux-x64-gnu.node"
+  ],
+  "description": "Node.js bindings for FalkorDB text-to-cypher library - Convert natural language to Cypher queries",
+  "keywords": [
+    "falkordb",
+    "cypher",
+    "graph",
+    "database",
+    "nlp",
+    "ai",
+    "text-to-cypher",
+    "napi-rs"
+  ],
+  "author": "FalkorDB",
+  "homepage": "https://github.com/FalkorDB/text-to-cypher-node#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FalkorDB/text-to-cypher-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FalkorDB/text-to-cypher-node/issues"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

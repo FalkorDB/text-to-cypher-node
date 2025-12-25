@@ -134,17 +134,71 @@ jobs:
         with:
           path: artifacts
 
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -la artifacts/
+          echo ""
+          echo "Contents of each artifact:"
+          for dir in artifacts/*/; do
+            echo "=== $dir ==="
+            ls -la "$dir"
+            echo ""
+          done
+
       - name: Create npm directory structure
-        run: mkdir -p npm/{darwin-{x64,arm64},win32-x64-msvc,linux-{x64,arm64}-{gnu,musl}}
+        run: |
+          echo "Creating npm platform directories..."
+          mkdir -p npm/{darwin-{x64,arm64},win32-x64-msvc,linux-{x64,arm64}-{gnu,musl}}
+          echo "Created directories:"
+          ls -la npm/
 
-      - name: Move artifacts
-        run: npm run artifacts
+      - name: Move artifacts to npm directories
+        run: |
+          echo "Moving artifacts to npm directories..."
+          npm run artifacts
+          echo ""
+          echo "npm directory structure after moving artifacts:"
+          for dir in npm/*/; do
+            echo "=== $dir ==="
+            ls -la "$dir"
+            echo ""
+          done
 
-      - name: Prepare packages for publishing
-        run: npm run prepublishOnly
+      - name: Create npm package.json files
+        run: |
+          echo "Creating package.json for each platform..."
+          npm run create-npm-packages
 
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Verify npm packages
+        run: |
+          echo "Verifying npm packages are ready for publishing..."
+          echo ""
+          for dir in npm/*/; do
+            platform=$(basename "$dir")
+            if [ -f "$dir/package.json" ]; then
+              echo "✅ $platform: package.json exists"
+              if ls "$dir"/*.node 1> /dev/null 2>&1; then
+                echo "✅ $platform: .node file exists"
+              else
+                echo "❌ $platform: .node file missing!"
+                exit 1
+              fi
+            else
+              echo "⚠️  $platform: package.json missing!"
+            fi
+            echo ""
+          done
+
+      - name: Publish platform packages to npm
+        run: npm run publish-npm-packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish main package to npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
