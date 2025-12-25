@@ -153,7 +153,11 @@ jobs:
           for dir in artifacts/*/; do
             if [ -d "$dir" ]; then
               echo "Processing $dir"
-              mv "$dir"/*.node . 2>/dev/null || true
+              if ls "$dir"/*.node 1> /dev/null 2>&1; then
+                mv "$dir"/*.node .
+              else
+                echo "No .node files in $dir"
+              fi
             fi
           done
           echo ""
@@ -168,10 +172,14 @@ jobs:
           echo "npm directory structure after napi artifacts:"
           if [ -d "npm" ]; then
             for dir in npm/*/; do
-              echo "=== $dir ==="
-              ls -la "$dir"
-              echo ""
+              if [ -d "$dir" ]; then
+                echo "=== $dir ==="
+                ls -la "$dir"
+                echo ""
+              fi
             done
+          else
+            echo "npm directory not found"
           fi
 
       - name: Create npm package.json files
