@@ -143,9 +143,7 @@ jobs:
       - name: Publish to npm
         run: |
           npm config set provenance true
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish --access public --provenance
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
