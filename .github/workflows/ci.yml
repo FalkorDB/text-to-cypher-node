@@ -133,10 +133,6 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: .
 
-      - name: List packages
-        run: ls -R .
-        shell: bash
-
       - name: Test bindings
         run: npm test
 
