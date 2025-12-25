@@ -164,12 +164,26 @@ jobs:
           echo "Step 4: Verifying generated binaries"
           ls -lh *.node 2>&1 || echo "No .node files found in current directory"
           echo ""
-          echo "Checking target directory:"
-          find target -name "*.node" -type f -exec ls -lh {} \; 2>&1 || echo "No .node files found in target directory"
-          echo ""
-          
-          # 5. Create the Universal binary
-          echo "Step 5: Creating universal macOS binary"
+
+      - name: Upload x86_64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-x86_64-apple-darwin
+          path: text-to-cypher.darwin-x64.node
+          if-no-files-found: error
+
+      - name: Upload aarch64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-aarch64-apple-darwin
+          path: text-to-cypher.darwin-arm64.node
+          if-no-files-found: error
+
+      - name: Create universal binary
+        run: |
+          echo "========================================"
+          echo "CREATING UNIVERSAL MACOS BINARY"
+          echo "========================================"
           echo "Running: npm run universal"
           npm run universal
           
@@ -181,11 +195,11 @@ jobs:
           ls -lh text-to-cypher.*.node || echo "No binaries found"
           echo "========================================"
 
-      - name: Upload artifact
+      - name: Upload universal artifact
         uses: actions/upload-artifact@v4
         with:
           name: bindings-universal-apple-darwin
-          path: text-to-cypher.*.node
+          path: text-to-cypher.darwin-universal.node
           if-no-files-found: error
 
   publish:
