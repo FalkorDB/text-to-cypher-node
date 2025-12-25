@@ -2,8 +2,27 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const packageJson = require('../package.json');
+
+/**
+ * Check if a package exists on npm and return its latest version
+ * @param {string} packageName - The npm package name
+ * @returns {string|null} - Latest version if exists, null otherwise
+ */
+function getLatestNpmVersion(packageName) {
+  try {
+    const version = execSync(`npm view ${packageName} version`, {
+      stdio: 'pipe',
+      encoding: 'utf8'
+    }).trim();
+    return version;
+  } catch (error) {
+    // Package doesn't exist on npm
+    return null;
+  }
+}
 
 const platforms = [
   {
@@ -86,9 +105,16 @@ for (const platform of platforms) {
     continue;
   }
 
+  // Determine version: check if package exists on npm
+  const packageName = `@falkordb/text-to-cypher-${platform.name}`;
+  const existingVersion = getLatestNpmVersion(packageName);
+  const version = existingVersion ? packageJson.version : '0.1.0';
+
+  console.log(`   ${existingVersion ? `📦 Existing package (current: ${existingVersion}) → updating to ${version}` : `🆕 New package → starting at ${version}`}`);
+
   const platformPackageJson = {
-    name: `@falkordb/text-to-cypher-${platform.name}`,
-    version: packageJson.version,
+    name: packageName,
+    version: version,
     os: platform.os,
     cpu: platform.cpu,
     main: platform.node,
