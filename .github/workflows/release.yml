@@ -140,6 +140,9 @@ jobs:
       - name: Move artifacts
         run: npm run artifacts
 
+      - name: Prepare packages for publishing
+        run: npm run prepublishOnly
+
       - name: Publish to npm
         run: npm publish --access public
 
