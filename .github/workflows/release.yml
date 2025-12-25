@@ -11,10 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
+          - host: macos-13
             build: npm run build -- --target x86_64-apple-darwin
             target: x86_64-apple-darwin
-          - host: macos-latest
+          - host: macos-14
             build: npm run build -- --target aarch64-apple-darwin
             target: aarch64-apple-darwin
           - host: windows-latest
@@ -122,7 +122,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
           registry-url: 'https://registry.npmjs.org'
 
@@ -150,11 +150,23 @@ jobs:
         run: |
           echo "Moving .node files from artifacts to root directory..."
           # NAPI-RS expects the binaries in the root directory to bundle them
+          # Using cp instead of mv to avoid accidentally overwriting files
+          # Each platform should produce a uniquely named .node file (e.g., text-to-cypher.linux-x64-gnu.node)
           for dir in artifacts/*/; do
             if [ -d "$dir" ]; then
               echo "Processing $dir"
               if ls "$dir"/*.node 1> /dev/null 2>&1; then
-                mv "$dir"/*.node .
+                for file in "$dir"/*.node; do
+                  filename=$(basename "$file")
+                  if [ -f "$filename" ]; then
+                    echo "⚠️  WARNING: $filename already exists in root! This indicates a naming conflict."
+                    echo "   Existing file size: $(stat -f%z "$filename" 2>/dev/null || stat -c%s "$filename" 2>/dev/null) bytes"
+                    echo "   New file size: $(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null) bytes"
+                    exit 1
+                  fi
+                  cp "$file" .
+                  echo "  Copied: $filename"
+                done
               else
                 echo "No .node files in $dir"
               fi
