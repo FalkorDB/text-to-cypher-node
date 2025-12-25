@@ -73,12 +73,12 @@
   ],
   "packageManager": "npm@9.6.7",
   "optionalDependencies": {
-    "@falkordb/text-to-cypher-win32-x64-msvc": "0.1.3",
-    "@falkordb/text-to-cypher-darwin-x64": "0.1.3",
-    "@falkordb/text-to-cypher-linux-x64-gnu": "0.1.3",
-    "@falkordb/text-to-cypher-darwin-arm64": "0.1.3",
-    "@falkordb/text-to-cypher-linux-arm64-gnu": "0.1.3",
-    "@falkordb/text-to-cypher-linux-x64-musl": "0.1.3",
-    "@falkordb/text-to-cypher-linux-arm64-musl": "0.1.3"
+    "@falkordb/text-to-cypher-win32-x64-msvc": "^0.1.0",
+    "@falkordb/text-to-cypher-darwin-x64": "^0.1.0",
+    "@falkordb/text-to-cypher-linux-x64-gnu": "^0.1.0",
+    "@falkordb/text-to-cypher-darwin-arm64": "^0.1.0",
+    "@falkordb/text-to-cypher-linux-arm64-gnu": "^0.1.0",
+    "@falkordb/text-to-cypher-linux-x64-musl": "^0.1.0",
+    "@falkordb/text-to-cypher-linux-arm64-musl": "^0.1.0"
   }
 }
