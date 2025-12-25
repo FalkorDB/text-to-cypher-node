@@ -11,16 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
-            target: x86_64-apple-darwin
-            build: |
-              npm run build -- --target x86_64-apple-darwin
-              strip -x *.node
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: |
-              npm run build -- --target aarch64-apple-darwin
-              strip -x *.node
           - host: windows-latest
             build: npm run build
             target: x86_64-pc-windows-msvc
@@ -114,12 +104,7 @@ jobs:
 
   universal-macOS:
     name: Build universal macOS binary
-    needs:
-      - build
     runs-on: macos-latest
-    permissions:
-      contents: read
-      actions: read
 
     steps:
       - uses: actions/checkout@v4
@@ -130,237 +115,70 @@ jobs:
           node-version: 18
           cache: npm
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: macos-universal-cargo-release-${{ runner.os }}
+
       - name: Install dependencies
         run: npm install
 
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: bindings-*-apple-darwin
-          merge-multiple: true
-
-      - name: List downloaded artifacts (detailed)
+      - name: Build macOS binaries
         run: |
           echo "========================================"
-          echo "DOWNLOADED ARTIFACTS - DETAILED LISTING"
-          echo "========================================"
-          echo ""
-          echo "Current directory: $(pwd)"
-          echo ""
-          echo "All files in current directory:"
-          ls -laR
-          echo ""
-          echo "Looking for .node files specifically:"
-          find . -name "*.node" -type f -exec ls -lh {} \; || echo "No .node files found with find"
-          echo ""
-          echo "Direct ls of *.node pattern:"
-          ls -lh *.node 2>&1 || echo "No .node files found with ls *.node"
-          echo ""
+          echo "BUILDING MACOS BINARIES"
           echo "========================================"
           
-      - name: Prepare binaries for universal build
-        run: |
-          set -e  # Exit on error
-          echo "========================================"
-          echo "PREPARING BINARIES FOR UNIVERSAL BUILD"
-          echo "========================================"
+          # 1. Add both Rust targets
+          echo "Step 1: Adding Rust targets"
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+          echo "✓ Targets added"
           echo ""
           
-          # Show complete directory structure first
-          echo "Step 1: Complete directory structure"
-          echo "pwd: $(pwd)"
-          echo ""
-          echo "Full recursive listing:"
-          ls -laR
+          # 2. Build x86_64 explicitly
+          echo "Step 2: Building x86_64-apple-darwin"
+          npm run build -- --target x86_64-apple-darwin
+          echo "✓ x86_64 build complete"
           echo ""
           
-          # List all .node files recursively with full paths
-          echo "Step 2: Finding all .node files (with full paths)"
-          node_files=$(find . -name "*.node" -type f 2>/dev/null || true)
-          if [ -z "$node_files" ]; then
-            echo "  ⚠ ERROR: NO .node files found anywhere!"
-            echo ""
-            echo "This means artifacts were not downloaded correctly."
-            echo "Expected to find files like:"
-            echo "  - text-to-cypher.darwin-x64.node"
-            echo "  - text-to-cypher.darwin-arm64.node"
-            echo "  - text-to-cypher.x86_64-apple-darwin.node"
-            echo "  - text-to-cypher.aarch64-apple-darwin.node"
-            exit 1
-          else
-            echo "$node_files" | while read file; do
-              size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "?")
-              echo "  Found: $file ($size bytes)"
-            done
-          fi
+          # 3. Build ARM64 explicitly
+          echo "Step 3: Building aarch64-apple-darwin"
+          npm run build -- --target aarch64-apple-darwin
+          echo "✓ aarch64 build complete"
           echo ""
           
-          # Move any .node files from subdirectories to current directory
-          echo "Step 3: Moving .node files to current directory"
-          found_files=0
-          while IFS= read -r file; do
-            if [ -n "$file" ] && [ "$file" != "./*.node" ]; then
-              filename=$(basename "$file")
-              echo "  Moving: $file → ./$filename"
-              mv "$file" "./$filename"
-              echo "    ✓ Moved successfully"
-              found_files=$((found_files + 1))
-            fi
-          done < <(find . -name "*.node" -type f -not -path "./*.node" 2>/dev/null || true)
-          
-          if [ $found_files -eq 0 ]; then
-            echo "  No files needed to be moved (already in current directory)"
-          fi
+          # 4. List generated binaries
+          echo "Step 4: Verifying generated binaries"
+          ls -lh *.node 2>&1 || echo "No .node files found in current directory"
+          echo ""
+          echo "Checking target directory:"
+          find target -name "*.node" -type f -exec ls -lh {} \; 2>&1 || echo "No .node files found in target directory"
           echo ""
           
-          # List .node files in current directory
-          echo "Step 4: Files in current directory after move"
-          ls -lh *.node 2>&1 || {
-            echo "  ⚠ ERROR: No .node files in current directory after move!"
-            exit 1
-          }
-          echo ""
-          
-          # Initialize tracking for required files
-          has_x64=false
-          has_arm64=false
-          
-          # Create npm platform directories for napi universal
-          echo "Step 5: Creating npm platform directory structure"
-          mkdir -p npm/darwin-x64 npm/darwin-arm64
-          echo "  ✓ Created npm/darwin-x64/"
-          echo "  ✓ Created npm/darwin-arm64/"
-          echo ""
-          
-          # Check what files we have and move to correct platform directories
-          echo "Step 6: Organizing files into npm platform directories"
-          for file in *.node; do
-            [ -f "$file" ] || {
-              echo "  ⚠ ERROR: No .node files to process"
-              exit 1
-            }
-            echo "  Processing: $file"
-            
-            case "$file" in
-              text-to-cypher.x86_64-apple-darwin.node)
-                mv "$file" npm/darwin-x64/text-to-cypher.darwin-x64.node
-                echo "    ✓ Moved to: npm/darwin-x64/text-to-cypher.darwin-x64.node"
-                has_x64=true
-                ;;
-              text-to-cypher.aarch64-apple-darwin.node)
-                mv "$file" npm/darwin-arm64/text-to-cypher.darwin-arm64.node
-                echo "    ✓ Moved to: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
-                has_arm64=true
-                ;;
-              text-to-cypher.darwin-x64.node)
-                mv "$file" npm/darwin-x64/text-to-cypher.darwin-x64.node
-                echo "    ✓ Moved to: npm/darwin-x64/text-to-cypher.darwin-x64.node"
-                has_x64=true
-                ;;
-              text-to-cypher.darwin-arm64.node)
-                mv "$file" npm/darwin-arm64/text-to-cypher.darwin-arm64.node
-                echo "    ✓ Moved to: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
-                has_arm64=true
-                ;;
-              *)
-                echo "    ⚠ WARNING: Unexpected file: $file (will be ignored by napi universal)"
-                ;;
-            esac
-          done
-          echo ""
-          
-          # Final verification
-          echo "Step 7: Final verification before running napi universal"
-          missing_files=()
-          
-          if [ -f "npm/darwin-x64/text-to-cypher.darwin-x64.node" ]; then
-            size=$(stat -f%z "npm/darwin-x64/text-to-cypher.darwin-x64.node" 2>/dev/null || stat -c%s "npm/darwin-x64/text-to-cypher.darwin-x64.node" 2>/dev/null || echo "unknown")
-            echo "  ✓ npm/darwin-x64/text-to-cypher.darwin-x64.node ($size bytes)"
-          else
-            echo "  ✗ MISSING: npm/darwin-x64/text-to-cypher.darwin-x64.node"
-            missing_files+=("npm/darwin-x64/text-to-cypher.darwin-x64.node")
-          fi
-          
-          if [ -f "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" ]; then
-            size=$(stat -f%z "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" 2>/dev/null || stat -c%s "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" 2>/dev/null || echo "unknown")
-            echo "  ✓ npm/darwin-arm64/text-to-cypher.darwin-arm64.node ($size bytes)"
-          else
-            echo "  ✗ MISSING: npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
-            missing_files+=("npm/darwin-arm64/text-to-cypher.darwin-arm64.node")
-          fi
-          
-          echo ""
-          echo "Files in npm platform directories:"
-          ls -lhR npm/ 2>&1 || echo "  No npm directory found"
-          echo ""
-          
-          # Show which artifacts were downloaded
-          echo "Artifact download summary:"
-          echo "  - Pattern used: bindings-*-apple-darwin"
-          echo "  - x64 binary found: $has_x64"
-          echo "  - arm64 binary found: $has_arm64"
-          echo "========================================"
-          
-          # Fail if any required files are missing
-          if [ ${#missing_files[@]} -gt 0 ]; then
-            echo ""
-            echo "❌ ERROR: Required binaries are missing!"
-            echo "Missing files: ${missing_files[*]}"
-            echo ""
-            echo "The 'napi universal' command requires both darwin-x64 and darwin-arm64 binaries"
-            echo "in the npm platform directory structure:"
-            echo "  - npm/darwin-x64/text-to-cypher.darwin-x64.node"
-            echo "  - npm/darwin-arm64/text-to-cypher.darwin-arm64.node"
-            echo ""
-            echo "Available artifacts should match pattern: bindings-*-apple-darwin"
-            echo "Expected artifact names:"
-            echo "  - bindings-x86_64-apple-darwin"
-            echo "  - bindings-aarch64-apple-darwin"
-            exit 1
-          fi
-          
-          echo ""
-          echo "✓ All required binaries are present in npm platform directories and ready for universal binary creation"
-          
-          echo ""
-          echo "========================================"
-          
-      - name: Combine binaries
-        run: |
-          echo "========================================"
-          echo "PRE-CHECK: Files before running napi universal"
-          echo "========================================"
-          echo "Current directory: $(pwd)"
-          echo "npm platform directories:"
-          ls -lhR npm/ 2>&1 || echo "No npm directory found"
-          echo ""
-          echo "Checking specific files:"
-          [ -f "npm/darwin-x64/text-to-cypher.darwin-x64.node" ] && echo "✓ npm/darwin-x64/text-to-cypher.darwin-x64.node exists" || echo "✗ npm/darwin-x64/text-to-cypher.darwin-x64.node NOT FOUND"
-          [ -f "npm/darwin-arm64/text-to-cypher.darwin-arm64.node" ] && echo "✓ npm/darwin-arm64/text-to-cypher.darwin-arm64.node exists" || echo "✗ npm/darwin-arm64/text-to-cypher.darwin-arm64.node NOT FOUND"
-          echo ""
-          
-          echo "========================================"
-          echo "Copying binaries to current directory for napi universal"
-          echo "========================================"
-          cp npm/darwin-x64/text-to-cypher.darwin-x64.node ./text-to-cypher.darwin-x64.node
-          cp npm/darwin-arm64/text-to-cypher.darwin-arm64.node ./text-to-cypher.darwin-arm64.node
-          echo "✓ Copied npm/darwin-x64/text-to-cypher.darwin-x64.node → ./text-to-cypher.darwin-x64.node"
-          echo "✓ Copied npm/darwin-arm64/text-to-cypher.darwin-arm64.node → ./text-to-cypher.darwin-arm64.node"
-          echo ""
-          echo "Files in current directory:"
-          ls -lh text-to-cypher.*.node
-          echo ""
-          
-          echo "========================================"
-          echo "RUNNING: npm run universal"
-          echo "========================================"
+          # 5. Create the Universal binary
+          echo "Step 5: Creating universal macOS binary"
+          echo "Running: npm run universal"
           npm run universal
+          
           echo ""
           echo "========================================"
-          echo "RESULT: Universal binary creation"
+          echo "BUILD COMPLETE"
           echo "========================================"
-          echo "Generated universal binary:"
-          ls -lh text-to-cypher.*.node || echo "No binaries found after universal command"
+          echo "Generated binaries:"
+          ls -lh text-to-cypher.*.node || echo "No binaries found"
           echo "========================================"
 
       - name: Upload artifact
