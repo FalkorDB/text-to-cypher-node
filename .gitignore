@@ -10,6 +10,9 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+npm/
+artifacts/
+x86_64-*/
 
 # IDE
 .vscode/
