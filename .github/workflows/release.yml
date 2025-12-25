@@ -159,9 +159,9 @@ jobs:
                 for file in "$dir"/*.node; do
                   filename=$(basename "$file")
                   if [ -f "$filename" ]; then
-                    echo "⚠️  WARNING: $filename already exists in root! This indicates a naming conflict."
-                    echo "   Existing file size: $(stat -f%z "$filename" 2>/dev/null || stat -c%s "$filename" 2>/dev/null) bytes"
-                    echo "   New file size: $(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null) bytes"
+                    echo "❌ ERROR: $filename already exists in root! This indicates a naming conflict."
+                    echo "   This means platform-specific artifacts have identical names, which would cause overwrites."
+                    echo "   Please ensure each platform produces uniquely named .node files."
                     exit 1
                   fi
                   cp "$file" .
