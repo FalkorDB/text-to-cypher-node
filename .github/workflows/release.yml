@@ -73,12 +73,6 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
-
-      - name: Setup zig
-        uses: mlugg/setup-zig@v1
-        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-musl' }}
-        with:
-          version: 0.13.0
           
       - name: Cache cargo
         uses: actions/cache@v3
