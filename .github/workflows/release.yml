@@ -163,7 +163,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
           cache: npm
           registry-url: 'https://registry.npmjs.org'
 
@@ -175,101 +175,19 @@ jobs:
         with:
           path: artifacts
 
-      - name: List downloaded artifacts
+      - name: Move artifacts
+        run: npm run artifacts
+
+      - name: List packages
+        run: ls -R ./npm
+        shell: bash
+
+      - name: Publish to npm
         run: |
-          echo "Downloaded artifacts:"
-          ls -la artifacts/
-          echo ""
-          echo "Contents of each artifact:"
-          for dir in artifacts/*/; do
-            echo "=== $dir ==="
-            ls -la "$dir"
-            echo ""
-          done
-
-      - name: Move artifacts to root
-        run: |
-          echo "Moving .node files from artifacts to root directory..."
-          # NAPI-RS expects the binaries in the root directory to bundle them
-          # Using cp instead of mv to avoid accidentally overwriting files
-          # Each platform should produce a uniquely named .node file (e.g., text-to-cypher.linux-x64-gnu.node)
-          for dir in artifacts/*/; do
-            if [ -d "$dir" ]; then
-              echo "Processing $dir"
-              if ls "$dir"/*.node 1> /dev/null 2>&1; then
-                for file in "$dir"/*.node; do
-                  filename=$(basename "$file")
-                  if [ -f "$filename" ]; then
-                    echo "❌ ERROR: $filename already exists in root! This indicates a naming conflict."
-                    echo "   This means platform-specific artifacts have identical names, which would cause overwrites."
-                    echo "   Please ensure each platform produces uniquely named .node files."
-                    exit 1
-                  fi
-                  cp "$file" .
-                  echo "  Copied: $filename"
-                done
-              else
-                echo "No .node files in $dir"
-              fi
-            fi
-          done
-          echo ""
-          echo "Files in root after moving artifacts:"
-          ls -la *.node || echo "No .node files found"
-
-      - name: Create npm directory structure
-        run: |
-          echo "Creating npm platform directories..."
-          mkdir -p npm/{darwin-arm64,darwin-x64,win32-x64-msvc,linux-x64-gnu,linux-arm64-gnu,linux-x64-musl,linux-arm64-musl}
-
-      - name: Run napi artifacts
-        run: |
-          echo "Running napi artifacts to move binaries to platform-specific directories..."
-          npm run artifacts
-          echo ""
-          echo "npm directory structure after napi artifacts:"
-          if [ -d "npm" ]; then
-            for dir in npm/*/; do
-              if [ -d "$dir" ]; then
-                echo "=== $dir ==="
-                ls -la "$dir"
-                echo ""
-              fi
-            done
-          else
-            echo "npm directory not found"
-          fi
-
-      - name: Create npm package.json files
-        run: |
-          echo "Creating package.json for each platform..."
-          npm run create-npm-packages
-
-      - name: Verify npm packages
-        run: |
-          echo "Verifying npm packages are ready for publishing..."
-          echo ""
-          for dir in npm/*/; do
-            platform=$(basename "$dir")
-            if [ -f "$dir/package.json" ]; then
-              echo "✅ $platform: package.json exists"
-              if ls "$dir"/*.node 1> /dev/null 2>&1; then
-                echo "✅ $platform: .node file exists"
-              else
-                echo "❌ $platform: .node file missing!"
-                exit 1
-              fi
-            else
-              echo "⚠️  $platform: package.json missing!"
-            fi
-            echo ""
-          done
-
-      - name: Publish platform packages to npm
-        run: npm run publish-npm-packages
-
-      - name: Publish main package to npm
-        run: npm publish --access public --provenance
+          npm config set provenance true
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
