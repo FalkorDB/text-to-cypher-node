@@ -32,7 +32,13 @@ jobs:
               strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            build: npm run build -- --target aarch64-unknown-linux-musl --zig
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine-zig
+            build: |-
+              set -e &&
+              rustup update stable &&
+              rustup target add aarch64-unknown-linux-musl &&
+              npm run build -- --target aarch64-unknown-linux-musl --zig &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
 
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
