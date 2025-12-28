@@ -51,7 +51,7 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add aarch64-unknown-linux-musl &&
-              npm run build -- --target aarch64-unknown-linux-musl &&
+              npm run build -- --target aarch64-unknown-linux-musl --zig &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
 
     name: stable - ${{ matrix.settings.target }} - node@18
@@ -74,6 +74,12 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
 
+      - name: Setup zig
+        uses: mlugg/setup-zig@v1
+        if: ${{ matrix.settings.target == 'aarch64-unknown-linux-musl' }}
+        with:
+          version: 0.13.0
+          
       - name: Cache cargo
         uses: actions/cache@v3
         with:
