@@ -57,7 +57,7 @@
     "lint": "eslint . --ext .ts,.js"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.0",
+    "@napi-rs/cli": "^3.5.0",
     "@types/node": "^20.11.0",
     "@vitest/coverage-v8": "^1.2.0",
     "prettier": "^3.2.0",
