@@ -67,6 +67,7 @@
   "files": [
     "index.js",
     "index.d.ts",
+    "*.node",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
