@@ -181,6 +181,30 @@ jobs:
       - name: Move artifacts
         run: npm run artifacts
 
+      - name: Create npm platform directories
+        run: |
+          mkdir -p npm/darwin-x64
+          mkdir -p npm/darwin-arm64
+          mkdir -p npm/win32-x64-msvc
+          mkdir -p npm/linux-x64-gnu
+          mkdir -p npm/linux-arm64-gnu
+          mkdir -p npm/linux-x64-musl
+          mkdir -p npm/linux-arm64-musl
+
+      - name: Move .node files to platform directories
+        run: |
+          # Move each .node file to its corresponding platform directory
+          [ -f text-to-cypher.darwin-x64.node ] && mv text-to-cypher.darwin-x64.node npm/darwin-x64/ || echo "darwin-x64 not found"
+          [ -f text-to-cypher.darwin-arm64.node ] && mv text-to-cypher.darwin-arm64.node npm/darwin-arm64/ || echo "darwin-arm64 not found"
+          [ -f text-to-cypher.win32-x64-msvc.node ] && mv text-to-cypher.win32-x64-msvc.node npm/win32-x64-msvc/ || echo "win32-x64-msvc not found"
+          [ -f text-to-cypher.linux-x64-gnu.node ] && mv text-to-cypher.linux-x64-gnu.node npm/linux-x64-gnu/ || echo "linux-x64-gnu not found"
+          [ -f text-to-cypher.linux-arm64-gnu.node ] && mv text-to-cypher.linux-arm64-gnu.node npm/linux-arm64-gnu/ || echo "linux-arm64-gnu not found"
+          [ -f text-to-cypher.linux-x64-musl.node ] && mv text-to-cypher.linux-x64-musl.node npm/linux-x64-musl/ || echo "linux-x64-musl not found"
+          [ -f text-to-cypher.linux-arm64-musl.node ] && mv text-to-cypher.linux-arm64-musl.node npm/linux-arm64-musl/ || echo "linux-arm64-musl not found"
+
+      - name: Create npm packages
+        run: npm run create-npm-packages
+
       # Re-setup node AFTER artifact manipulation
       - name: Setup node for publishing
         uses: actions/setup-node@v4
@@ -188,6 +212,9 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish to npm
+      - name: Publish platform packages
+        run: npm run publish-npm-packages
+
+      - name: Publish main package
         run: npm publish --provenance --access public
 
