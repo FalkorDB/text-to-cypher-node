@@ -1693,9 +1693,9 @@ dependencies = [
 
 [[package]]
 name = "text-to-cypher"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "375d272cac3fa83f19a7fab65db45e9c64bde8067e21b313d0812cd85bc5047c"
+checksum = "ddbb0a652fe22dfc88e9847c83f6d5744c052a4a1f0e238a85fa640fa08f2b82"
 dependencies = [
  "async-trait",
  "falkordb",
