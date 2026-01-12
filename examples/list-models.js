@@ -11,9 +11,13 @@ const { TextToCypher } = require('../index');
 
 async function main() {
   // Create a client with your configuration
+  // Note: Replace placeholder values with your actual credentials
   const client = new TextToCypher({
     model: 'gpt-4o-mini',
-    apiKey: process.env.OPENAI_API_KEY || 'your-api-key-here',
+    // API key for your AI provider (e.g., OpenAI API key starting with 'sk-...')
+    apiKey: process.env.OPENAI_API_KEY || 'REPLACE_WITH_YOUR_API_KEY',
+    // FalkorDB connection string in the format: falkor://host:port
+    // For local development, typically: falkor://localhost:6379
     falkordbConnection: process.env.FALKORDB_CONNECTION || 'falkor://localhost:6379'
   });
 

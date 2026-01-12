@@ -176,6 +176,11 @@ export declare class TextToCypher {
    *
    * Returns a list of commonly available models from OpenAI, Anthropic, Gemini, and Ollama.
    *
+   * # Note
+   *
+   * This method returns a curated list of well-known models. The actual availability
+   * of models depends on your API credentials and the current offerings from each provider.
+   *
    * # Returns
    *
    * A promise that resolves to an array of model names
@@ -194,7 +199,12 @@ export declare class TextToCypher {
    *
    * # Arguments
    *
-   * * `provider` - Provider name: "openai", "anthropic", "gemini", or "ollama"
+   * * `provider` - Provider name: "openai", "anthropic", "gemini", or "ollama" (case-insensitive)
+   *
+   * # Note
+   *
+   * This method returns a curated list of well-known models. The actual availability
+   * of models depends on your API credentials and the current offerings from each provider.
    *
    * # Returns
    *
