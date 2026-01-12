@@ -277,4 +277,111 @@ impl TextToCypher {
             Err(e) => Err(Error::from_reason(format!("Schema discovery failed: {}", e))),
         }
     }
+
+    /// Lists all available AI models across all supported providers
+    ///
+    /// Returns a list of commonly available models from OpenAI, Anthropic, Gemini, and Ollama.
+    ///
+    /// # Returns
+    ///
+    /// A promise that resolves to an array of model names
+    ///
+    /// # Example
+    ///
+    /// ```javascript
+    /// const models = await client.listModels();
+    /// console.log('Available models:', models);
+    /// // Output: ['gpt-4o-mini', 'gpt-4o', 'claude-3-5-sonnet-20241022', ...]
+    /// ```
+    #[napi]
+    pub async fn list_models(&self) -> Result<Vec<String>> {
+        let mut models = Vec::new();
+        
+        // OpenAI models
+        models.extend(vec![
+            "gpt-4o-mini".to_string(),
+            "gpt-4o".to_string(),
+            "gpt-4-turbo".to_string(),
+            "gpt-4".to_string(),
+            "gpt-3.5-turbo".to_string(),
+        ]);
+        
+        // Anthropic models (with provider prefix)
+        models.extend(vec![
+            "anthropic:claude-3-5-sonnet-20241022".to_string(),
+            "anthropic:claude-3-opus-20240229".to_string(),
+            "anthropic:claude-3-sonnet-20240229".to_string(),
+            "anthropic:claude-3-haiku-20240307".to_string(),
+        ]);
+        
+        // Gemini models (with provider prefix)
+        models.extend(vec![
+            "gemini:gemini-2.0-flash-exp".to_string(),
+            "gemini:gemini-1.5-pro".to_string(),
+            "gemini:gemini-1.5-flash".to_string(),
+        ]);
+        
+        // Ollama models (with provider prefix) - common ones
+        models.extend(vec![
+            "ollama:llama2".to_string(),
+            "ollama:llama3".to_string(),
+            "ollama:mixtral".to_string(),
+            "ollama:phi3".to_string(),
+        ]);
+        
+        Ok(models)
+    }
+
+    /// Lists available AI models from a specific provider
+    ///
+    /// # Arguments
+    ///
+    /// * `provider` - Provider name: "openai", "anthropic", "gemini", or "ollama"
+    ///
+    /// # Returns
+    ///
+    /// A promise that resolves to an array of model names for the specified provider
+    ///
+    /// # Example
+    ///
+    /// ```javascript
+    /// const openaiModels = await client.listModelsByProvider('openai');
+    /// console.log('OpenAI models:', openaiModels);
+    /// // Output: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', ...]
+    /// ```
+    #[napi]
+    pub async fn list_models_by_provider(&self, provider: String) -> Result<Vec<String>> {
+        let provider_lower = provider.to_lowercase();
+        
+        match provider_lower.as_str() {
+            "openai" => Ok(vec![
+                "gpt-4o-mini".to_string(),
+                "gpt-4o".to_string(),
+                "gpt-4-turbo".to_string(),
+                "gpt-4".to_string(),
+                "gpt-3.5-turbo".to_string(),
+            ]),
+            "anthropic" => Ok(vec![
+                "anthropic:claude-3-5-sonnet-20241022".to_string(),
+                "anthropic:claude-3-opus-20240229".to_string(),
+                "anthropic:claude-3-sonnet-20240229".to_string(),
+                "anthropic:claude-3-haiku-20240307".to_string(),
+            ]),
+            "gemini" => Ok(vec![
+                "gemini:gemini-2.0-flash-exp".to_string(),
+                "gemini:gemini-1.5-pro".to_string(),
+                "gemini:gemini-1.5-flash".to_string(),
+            ]),
+            "ollama" => Ok(vec![
+                "ollama:llama2".to_string(),
+                "ollama:llama3".to_string(),
+                "ollama:mixtral".to_string(),
+                "ollama:phi3".to_string(),
+            ]),
+            _ => Err(Error::from_reason(format!(
+                "Unknown provider: '{}'. Supported providers are: openai, anthropic, gemini, ollama",
+                provider
+            ))),
+        }
+    }
 }

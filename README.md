@@ -136,6 +136,63 @@ console.log('Nodes:', schemaObj.nodes);
 console.log('Relationships:', schemaObj.relationships);
 ```
 
+## Model Discovery
+
+### `listModels()`
+
+Lists all available AI models across all supported providers.
+
+**Returns:** `Promise<string[]>`
+
+**Example:**
+```javascript
+const models = await client.listModels();
+console.log('Available models:', models);
+// Output: ['gpt-4o-mini', 'gpt-4o', 'anthropic:claude-3-5-sonnet-20241022', ...]
+```
+
+### `listModelsByProvider(provider)`
+
+Lists available AI models from a specific provider.
+
+**Parameters:**
+- `provider` (string): Provider name - `'openai'`, `'anthropic'`, `'gemini'`, or `'ollama'`
+
+**Returns:** `Promise<string[]>`
+
+**Example:**
+```javascript
+// List OpenAI models
+const openaiModels = await client.listModelsByProvider('openai');
+console.log('OpenAI models:', openaiModels);
+// Output: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo']
+
+// List Anthropic models
+const anthropicModels = await client.listModelsByProvider('anthropic');
+console.log('Anthropic models:', anthropicModels);
+
+// List Gemini models
+const geminiModels = await client.listModelsByProvider('gemini');
+console.log('Gemini models:', geminiModels);
+
+// List Ollama models
+const ollamaModels = await client.listModelsByProvider('ollama');
+console.log('Ollama models:', ollamaModels);
+```
+
+### Supported Providers
+
+- **`openai`** - OpenAI models (GPT-4, GPT-3.5, etc.)
+  - Models can be used directly: `'gpt-4o-mini'`
+- **`anthropic`** - Anthropic models (Claude variants)
+  - Models require prefix: `'anthropic:claude-3-5-sonnet-20241022'`
+- **`gemini`** - Google Gemini models
+  - Models require prefix: `'gemini:gemini-2.0-flash-exp'`
+- **`ollama`** - Local Ollama models (if configured)
+  - Models require prefix: `'ollama:llama3'`
+
+See the [examples/list-models.js](examples/list-models.js) file for a complete working example.
+
 ## Types
 
 ### TextToCypherResponse

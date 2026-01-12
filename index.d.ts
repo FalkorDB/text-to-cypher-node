@@ -171,4 +171,42 @@ export declare class TextToCypher {
    * ```
    */
   discoverSchema(graphName: string): Promise<string>
+  /**
+   * Lists all available AI models across all supported providers
+   *
+   * Returns a list of commonly available models from OpenAI, Anthropic, Gemini, and Ollama.
+   *
+   * # Returns
+   *
+   * A promise that resolves to an array of model names
+   *
+   * # Example
+   *
+   * ```javascript
+   * const models = await client.listModels();
+   * console.log('Available models:', models);
+   * // Output: ['gpt-4o-mini', 'gpt-4o', 'claude-3-5-sonnet-20241022', ...]
+   * ```
+   */
+  listModels(): Promise<Array<string>>
+  /**
+   * Lists available AI models from a specific provider
+   *
+   * # Arguments
+   *
+   * * `provider` - Provider name: "openai", "anthropic", "gemini", or "ollama"
+   *
+   * # Returns
+   *
+   * A promise that resolves to an array of model names for the specified provider
+   *
+   * # Example
+   *
+   * ```javascript
+   * const openaiModels = await client.listModelsByProvider('openai');
+   * console.log('OpenAI models:', openaiModels);
+   * // Output: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', ...]
+   * ```
+   */
+  listModelsByProvider(provider: string): Promise<Array<string>>
 }
