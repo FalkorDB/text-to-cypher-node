@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-01-12
+
+### Added
+- Model discovery functionality with two new methods:
+  - `listModels()` - Lists all available AI models across all providers
+  - `listModelsByProvider(provider)` - Lists models from a specific provider (OpenAI, Anthropic, Gemini, Ollama)
+- Comprehensive model list covering:
+  - OpenAI models (GPT-4o, GPT-4 Turbo, GPT-3.5 Turbo, etc.)
+  - Anthropic Claude models (Claude 3.5 Sonnet, Claude 3 Opus, etc.)
+  - Google Gemini models (Gemini 2.0 Flash, Gemini 1.5 Pro, etc.)
+  - Ollama models (Llama 2, Llama 3, Mixtral, Phi-3)
+- New example file `examples/list-models.js` demonstrating model discovery
+- Documentation section in README.md for Model Discovery API
+- Test coverage for model listing functionality
+
 ## [0.1.0] - 2025-12-23
 
 ### Added
