@@ -115,4 +115,103 @@ describe('TextToCypher', () => {
       ).rejects.toThrow(/Invalid message role/);
     });
   });
+
+  describe('Model Discovery', () => {
+    let client: TextToCypher;
+
+    beforeEach(() => {
+      client = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: 'test-key',
+        falkordbConnection: 'falkor://localhost:6379'
+      });
+    });
+
+    it('should have listModels method', () => {
+      expect(typeof client.listModels).toBe('function');
+    });
+
+    it('should have listModelsByProvider method', () => {
+      expect(typeof client.listModelsByProvider).toBe('function');
+    });
+
+    it('should list all available models', async () => {
+      const models = await client.listModels();
+      
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      
+      // Check that we have models from different providers
+      const hasOpenAI = models.some(m => m.startsWith('gpt-'));
+      const hasAnthropic = models.some(m => m.includes('anthropic:'));
+      const hasGemini = models.some(m => m.includes('gemini:'));
+      
+      expect(hasOpenAI).toBe(true);
+      expect(hasAnthropic).toBe(true);
+      expect(hasGemini).toBe(true);
+    });
+
+    it('should list OpenAI models', async () => {
+      const models = await client.listModelsByProvider('openai');
+      
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      
+      // All models should be OpenAI models (no prefix)
+      models.forEach(model => {
+        expect(model.startsWith('gpt-')).toBe(true);
+      });
+    });
+
+    it('should list Anthropic models', async () => {
+      const models = await client.listModelsByProvider('anthropic');
+      
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      
+      // All models should have anthropic prefix
+      models.forEach(model => {
+        expect(model.startsWith('anthropic:')).toBe(true);
+      });
+    });
+
+    it('should list Gemini models', async () => {
+      const models = await client.listModelsByProvider('gemini');
+      
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      
+      // All models should have gemini prefix
+      models.forEach(model => {
+        expect(model.startsWith('gemini:')).toBe(true);
+      });
+    });
+
+    it('should list Ollama models', async () => {
+      const models = await client.listModelsByProvider('ollama');
+      
+      expect(Array.isArray(models)).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      
+      // All models should have ollama prefix
+      models.forEach(model => {
+        expect(model.startsWith('ollama:')).toBe(true);
+      });
+    });
+
+    it('should handle provider name case-insensitively', async () => {
+      const modelsLower = await client.listModelsByProvider('openai');
+      const modelsUpper = await client.listModelsByProvider('OPENAI');
+      const modelsMixed = await client.listModelsByProvider('OpenAI');
+      
+      expect(modelsLower).toEqual(modelsUpper);
+      expect(modelsLower).toEqual(modelsMixed);
+    });
+
+    it('should reject invalid provider', async () => {
+      await expect(
+        client.listModelsByProvider('invalid-provider')
+      ).rejects.toThrow(/Unknown provider/);
+    });
+  });
 });
