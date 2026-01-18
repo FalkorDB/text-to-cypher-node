@@ -32,7 +32,7 @@ jobs:
             build: |-
               set -e &&
               rustup update stable &&
-              CARGO_ENCODED_RUSTFLAGS="-Ctarget-feature=-crt-static" npm run build -- --target x86_64-unknown-linux-musl --zig &&
+              RUSTFLAGS="-C target-feature=-crt-static" npm run build -- --target x86_64-unknown-linux-musl --zig &&
               strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
