@@ -13,12 +13,13 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
-            build: npm run build -- --target x86_64-apple-darwin
-            target: x86_64-apple-darwin
-          - host: macos-latest
-            build: npm run build -- --target aarch64-apple-darwin
-            target: aarch64-apple-darwin
+          # macOS builds disabled in CI due to billing - still enabled in release
+          # - host: macos-latest-large
+          #   build: npm run build -- --target x86_64-apple-darwin
+          #   target: x86_64-apple-darwin
+          # - host: macos-latest
+          #   build: npm run build -- --target aarch64-apple-darwin
+          #   target: aarch64-apple-darwin
           - host: windows-latest
             build: npm run build
             target: x86_64-pc-windows-msvc
@@ -111,10 +112,11 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
-            target: x86_64-apple-darwin
-          - host: macos-latest
-            target: aarch64-apple-darwin
+          # macOS temporarily disabled in CI tests due to billing
+          # - host: macos-latest-large
+          #   target: x86_64-apple-darwin
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
           - host: windows-latest
             target: x86_64-pc-windows-msvc
           - host: ubuntu-latest
