@@ -9,9 +9,10 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
-            build: npm run build -- --target x86_64-apple-darwin
-            target: x86_64-apple-darwin
+          # macOS x64 disabled due to billing issues
+          # - host: macos-latest-large
+          #   build: npm run build -- --target x86_64-apple-darwin
+          #   target: x86_64-apple-darwin
           - host: macos-latest
             build: npm run build -- --target aarch64-apple-darwin
             target: aarch64-apple-darwin
