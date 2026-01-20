@@ -62,7 +62,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -121,7 +121,7 @@ jobs:
   #   runs-on: macos-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v6
   #
   #     - name: Setup node
   #       uses: actions/setup-node@v4
@@ -164,7 +164,7 @@ jobs:
       - build
       # - universal-macOS
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v4
