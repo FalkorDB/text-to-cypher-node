@@ -174,23 +174,19 @@ export declare class TextToCypher {
   /**
    * Lists all available AI models across all supported providers
    *
-   * Returns a list of commonly available models from OpenAI, Anthropic, Gemini, and Ollama.
-   *
-   * # Note
-   *
-   * This method returns a curated list of well-known models. The actual availability
-   * of models depends on your API credentials and the current offerings from each provider.
+   * This method queries all provider APIs (OpenAI, Anthropic, Gemini, Ollama) and
+   * returns a combined list of available models with provider prefixes.
    *
    * # Returns
    *
-   * A promise that resolves to an array of model names
+   * A promise that resolves to an array of model names with provider prefixes
    *
    * # Example
    *
    * ```javascript
-   * const models = await client.listModels();
-   * console.log('Available models:', models);
-   * // Output: ['gpt-4o-mini', 'gpt-4o', 'claude-3-5-sonnet-20241022', ...]
+   * const allModels = await client.listModels();
+   * console.log('All models:', allModels);
+   * // Output: ['gpt-4o-mini', 'gpt-4o', 'anthropic:claude-sonnet-4-5', 'gemini:gemini-2.5-pro', ...]
    * ```
    */
   listModels(): Promise<Array<string>>
@@ -203,12 +199,12 @@ export declare class TextToCypher {
    *
    * # Note
    *
-   * This method returns a curated list of well-known models. The actual availability
-   * of models depends on your API credentials and the current offerings from each provider.
+   * This method queries the actual AI provider APIs to get the list of available models.
+   * The availability depends on your API credentials and the current offerings from each provider.
    *
    * # Returns
    *
-   * A promise that resolves to an array of model names for the specified provider
+   * A promise that resolves to an array of model names for the specified provider (without prefixes)
    *
    * # Example
    *
