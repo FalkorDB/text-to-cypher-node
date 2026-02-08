@@ -278,6 +278,53 @@ impl TextToCypher {
         }
     }
 
+    /// Lists all available AI models across all supported providers
+    ///
+    /// This method queries all provider APIs (OpenAI, Anthropic, Gemini, Ollama) and
+    /// returns a combined list of available models with provider prefixes.
+    ///
+    /// # Returns
+    ///
+    /// A promise that resolves to an array of model names with provider prefixes
+    ///
+    /// # Example
+    ///
+    /// ```javascript
+    /// const allModels = await client.listModels();
+    /// console.log('All models:', allModels);
+    /// // Output: ['gpt-4o-mini', 'gpt-4o', 'anthropic:claude-sonnet-4-5', 'gemini:gemini-2.5-pro', ...]
+    /// ```
+    #[napi]
+    pub async fn list_models(&self) -> Result<Vec<String>> {
+        let mut all_models = Vec::new();
+        let providers = [
+            (AdapterKind::OpenAI, ""),
+            (AdapterKind::Anthropic, "anthropic:"),
+            (AdapterKind::Gemini, "gemini:"),
+            (AdapterKind::Ollama, "ollama:"),
+        ];
+
+        for (adapter, prefix) in providers {
+            match self.client.list_models(adapter).await {
+                Ok(models) => {
+                    for model in models {
+                        if prefix.is_empty() {
+                            all_models.push(model);
+                        } else {
+                            all_models.push(format!("{}{}", prefix, model));
+                        }
+                    }
+                }
+                Err(_) => {
+                    // Silently skip providers that fail (e.g., Ollama not running)
+                    continue;
+                }
+            }
+        }
+
+        Ok(all_models)
+    }
+
     /// Lists available AI models from a specific provider
     ///
     /// # Arguments
@@ -291,7 +338,7 @@ impl TextToCypher {
     ///
     /// # Returns
     ///
-    /// A promise that resolves to an array of model names for the specified provider
+    /// A promise that resolves to an array of model names for the specified provider (without prefixes)
     ///
     /// # Example
     ///
