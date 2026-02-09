@@ -142,40 +142,51 @@ console.log('Relationships:', schemaObj.relationships);
 
 Lists all available AI models across all supported providers.
 
-**Returns:** `Promise<string[]>`
+**Note:** This method queries all provider APIs (OpenAI, Anthropic, Gemini, Ollama) and aggregates the results. Models are returned with provider prefixes (except OpenAI).
+
+**Returns:** `Promise<string[]>` - Array of model names with provider prefixes where applicable
 
 **Example:**
 ```javascript
 const models = await client.listModels();
-console.log('Available models:', models);
-// Output: ['gpt-4o-mini', 'gpt-4o', 'anthropic:claude-3-5-sonnet-20241022', ...]
+console.log('All available models:', models);
+// Output: [
+//   'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo',  // OpenAI (no prefix)
+//   'anthropic:claude-sonnet-4-5', 'anthropic:claude-opus-4-5',  // Anthropic
+//   'gemini:gemini-2.5-pro', 'gemini:gemini-3-pro-preview',  // Gemini
+//   'ollama:llama3', 'ollama:mistral'  // Ollama (if running)
+// ]
 ```
 
 ### `listModelsByProvider(provider)`
 
-Lists available AI models from a specific provider.
+Lists available AI models from a specific provider by querying the actual provider APIs.
+
+**Note:** This method makes real API calls to the AI providers to get current model listings. The availability depends on your API credentials and the current offerings from each provider.
 
 **Parameters:**
-- `provider` (string): Provider name - `'openai'`, `'anthropic'`, `'gemini'`, or `'ollama'`
+- `provider` (string): Provider name - `'openai'`, `'anthropic'`, `'gemini'`, or `'ollama'` (case-insensitive)
 
-**Returns:** `Promise<string[]>`
+**Returns:** `Promise<string[]>` - Array of model names (without provider prefixes)
 
 **Example:**
 ```javascript
 // List OpenAI models
 const openaiModels = await client.listModelsByProvider('openai');
 console.log('OpenAI models:', openaiModels);
-// Output: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo']
+// Output: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', ...]
 
 // List Anthropic models
 const anthropicModels = await client.listModelsByProvider('anthropic');
 console.log('Anthropic models:', anthropicModels);
+// Output: ['claude-sonnet-4-5', 'claude-opus-4-5', 'claude-haiku-4-5']
 
 // List Gemini models
 const geminiModels = await client.listModelsByProvider('gemini');
 console.log('Gemini models:', geminiModels);
+// Output: ['gemini-2.5-pro', 'gemini-3-pro-preview', ...]
 
-// List Ollama models
+// List Ollama models (requires Ollama running locally)
 const ollamaModels = await client.listModelsByProvider('ollama');
 console.log('Ollama models:', ollamaModels);
 ```
@@ -185,11 +196,11 @@ console.log('Ollama models:', ollamaModels);
 - **`openai`** - OpenAI models (GPT-4, GPT-3.5, etc.)
   - Models can be used directly: `'gpt-4o-mini'`
 - **`anthropic`** - Anthropic models (Claude variants)
-  - Models require prefix: `'anthropic:claude-3-5-sonnet-20241022'`
+  - Models require prefix when using: `'anthropic:claude-sonnet-4-5'`
 - **`gemini`** - Google Gemini models
-  - Models require prefix: `'gemini:gemini-2.0-flash-exp'`
+  - Models require prefix when using: `'gemini:gemini-2.5-pro'`
 - **`ollama`** - Local Ollama models (if configured)
-  - Models require prefix: `'ollama:llama3'`
+  - Models require prefix when using: `'ollama:llama3'`
 
 See the [examples/list-models.js](examples/list-models.js) file for a complete working example.
 

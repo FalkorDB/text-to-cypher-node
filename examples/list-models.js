@@ -1,10 +1,13 @@
 /**
  * Model Discovery Example for @falkordb/text-to-cypher
- * 
+ *
  * This example demonstrates how to:
- * 1. List all available AI models across all providers
+ * 1. List all available models across all providers
  * 2. List models from specific providers (OpenAI, Anthropic, Gemini, Ollama)
  * 3. Handle provider-specific model naming conventions
+ * 4. Use the discovered models in your client configuration
+ *
+ * Note: This queries the actual AI provider APIs for current model listings.
  */
 
 const { TextToCypher } = require('../index');
@@ -25,15 +28,13 @@ async function main() {
 
   try {
     // Example 1: List all available models
-    console.log('1. Listing all available models across all providers...');
+    console.log('1. Listing all available models...');
     const allModels = await client.listModels();
-    console.log('\nAll available models:');
+    console.log(`\nFound ${allModels.length} total models:\n`);
     allModels.forEach((model, index) => {
-      console.log(`  ${index + 1}. ${model}`);
+      console.log(`  ${(index + 1).toString().padStart(2)}. ${model}`);
     });
-    console.log(`\nTotal: ${allModels.length} models\n`);
-
-    console.log('---\n');
+    console.log('\n---\n');
 
     // Example 2: List models by provider
     console.log('2. Listing models by provider...\n');
@@ -82,11 +83,12 @@ async function main() {
 
     // Example 5: Provider-specific naming conventions
     console.log('5. Note on provider-specific naming conventions:');
-    console.log('\nOpenAI models can be used directly:');
+    console.log('\nThe API returns model names without prefixes.');
+    console.log('When using models, OpenAI models can be used directly:');
     console.log('  model: \'gpt-4o-mini\'');
-    console.log('\nOther providers require a prefix:');
-    console.log('  model: \'anthropic:claude-3-5-sonnet-20241022\'');
-    console.log('  model: \'gemini:gemini-2.0-flash-exp\'');
+    console.log('\nOther providers require adding a prefix:');
+    console.log('  model: \'anthropic:claude-sonnet-4-5\'');
+    console.log('  model: \'gemini:gemini-2.5-pro\'');
     console.log('  model: \'ollama:llama3\'\n');
 
   } catch (error) {
