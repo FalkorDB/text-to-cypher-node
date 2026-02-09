@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 18
@@ -124,7 +124,7 @@ jobs:
   #     - uses: actions/checkout@v6
   #
   #     - name: Setup node
-  #       uses: actions/setup-node@v4
+  #       uses: actions/setup-node@v6
   #       with:
   #         node-version: 18
   #         cache: npm
@@ -167,7 +167,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -191,7 +191,7 @@ jobs:
 
       # Re-setup node AFTER artifact manipulation
       - name: Setup node for publishing
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
