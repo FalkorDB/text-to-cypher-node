@@ -57,10 +57,10 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 18
@@ -74,7 +74,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry/index/
@@ -101,7 +101,7 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bindings-${{ matrix.settings.target }}
           path: text-to-cypher.*.node
@@ -130,10 +130,10 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -142,7 +142,7 @@ jobs:
         run: npm install
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
           path: .
