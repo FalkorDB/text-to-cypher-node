@@ -202,6 +202,11 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Set version from Git tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version
+
       - name: Publish to npm
         run: npm publish --provenance --access public
 
