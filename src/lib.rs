@@ -58,6 +58,30 @@ impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
     }
 }
 
+/// Normalizes a model name by converting single-colon provider prefixes to the
+/// double-colon namespace format expected by the genai library.
+///
+/// For example:
+/// - `"anthropic:claude-sonnet-4-5"` → `"anthropic::claude-sonnet-4-5"`
+/// - `"gemini:gemini-2.5-pro"` → `"gemini::gemini-2.5-pro"`
+/// - `"ollama:llama2"` → `"ollama::llama2"`
+/// - `"gpt-4o-mini"` → `"gpt-4o-mini"` (unchanged)
+fn normalize_model_name(model: &str) -> String {
+    // If the model already uses the "::" namespace format, leave it as-is
+    if model.contains("::") {
+        return model.to_string();
+    }
+    // Convert known single-colon provider prefixes to genai's "::" namespace format
+    for prefix in &["anthropic:", "gemini:", "ollama:"] {
+        if model.starts_with(prefix) {
+            let provider = &prefix[..prefix.len() - 1];
+            let model_name = &model[prefix.len()..];
+            return format!("{}::{}", provider, model_name);
+        }
+    }
+    model.to_string()
+}
+
 /// Node.js wrapper for the text-to-cypher Rust library
 ///
 /// This class provides methods to convert natural language text to Cypher queries
@@ -102,7 +126,7 @@ impl TextToCypher {
     #[napi(constructor)]
     pub fn new(options: ClientOptions) -> Result<Self> {
         let client = TextToCypherClient::new(
-            options.model,
+            normalize_model_name(&options.model),
             options.api_key,
             options.falkordb_connection,
         );
@@ -366,5 +390,52 @@ impl TextToCypher {
             Ok(models) => Ok(models),
             Err(e) => Err(Error::from_reason(format!("Failed to list models: {}", e))),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_model_name;
+
+    #[test]
+    fn test_normalize_anthropic_model() {
+        assert_eq!(
+            normalize_model_name("anthropic:claude-sonnet-4-5"),
+            "anthropic::claude-sonnet-4-5"
+        );
+    }
+
+    #[test]
+    fn test_normalize_gemini_model() {
+        assert_eq!(
+            normalize_model_name("gemini:gemini-2.5-pro"),
+            "gemini::gemini-2.5-pro"
+        );
+    }
+
+    #[test]
+    fn test_normalize_ollama_model() {
+        assert_eq!(normalize_model_name("ollama:llama2"), "ollama::llama2");
+    }
+
+    #[test]
+    fn test_normalize_openai_model_unchanged() {
+        assert_eq!(normalize_model_name("gpt-4o-mini"), "gpt-4o-mini");
+    }
+
+    #[test]
+    fn test_normalize_already_double_colon_unchanged() {
+        assert_eq!(
+            normalize_model_name("anthropic::claude-3"),
+            "anthropic::claude-3"
+        );
+    }
+
+    #[test]
+    fn test_normalize_claude_without_prefix_unchanged() {
+        assert_eq!(
+            normalize_model_name("claude-sonnet-4-5"),
+            "claude-sonnet-4-5"
+        );
     }
 }
