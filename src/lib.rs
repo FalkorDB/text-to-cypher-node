@@ -58,6 +58,22 @@ impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
     }
 }
 
+fn normalize_model_name(model: &str) -> String {
+    // If the model already uses the "::" namespace format, leave it as-is
+    if model.contains("::") {
+        return model.to_string();
+    }
+    // Convert known single-colon provider prefixes to genai's "::" namespace format
+    for prefix in &["anthropic:", "gemini:", "ollama:"] {
+        if model.starts_with(prefix) {
+            let provider = &prefix[..prefix.len() - 1];
+            let model_name = &model[prefix.len()..];
+            return format!("{}::{}", provider, model_name);
+        }
+    }
+    model.to_string()
+}
+
 /// Node.js wrapper for the text-to-cypher Rust library
 ///
 /// This class provides methods to convert natural language text to Cypher queries
@@ -101,8 +117,9 @@ impl TextToCypher {
     /// ```
     #[napi(constructor)]
     pub fn new(options: ClientOptions) -> Result<Self> {
+        let model = normalize_model_name(&options.model);
         let client = TextToCypherClient::new(
-            options.model,
+            model,
             options.api_key,
             options.falkordb_connection,
         );
@@ -296,28 +313,18 @@ impl TextToCypher {
     /// ```
     #[napi]
     pub async fn list_models(&self) -> Result<Vec<String>> {
-        let mut all_models = Vec::new();
-        let providers = [
-            (AdapterKind::OpenAI, ""),
-            (AdapterKind::Anthropic, "anthropic:"),
-            (AdapterKind::Gemini, "gemini:"),
-            (AdapterKind::Ollama, "ollama:"),
-        ];
+        let all_provider_models = self.client.list_all_models().await
+            .map_err(|e| Error::from_reason(format!("Failed to list models: {}", e)))?;
 
-        for (adapter, prefix) in providers {
-            match self.client.list_models(adapter).await {
-                Ok(models) => {
-                    for model in models {
-                        if prefix.is_empty() {
-                            all_models.push(model);
-                        } else {
-                            all_models.push(format!("{}{}", prefix, model));
-                        }
-                    }
-                }
-                Err(_) => {
-                    // Silently skip providers that fail (e.g., Ollama not running)
-                    continue;
+        let mut all_models = Vec::new();
+        for (adapter_kind, models) in all_provider_models {
+            let prefix = adapter_kind.as_lower_str();
+            for model in models {
+                if adapter_kind == AdapterKind::OpenAI {
+                    // OpenAI models don't need a namespace prefix
+                    all_models.push(model);
+                } else {
+                    all_models.push(format!("{}::{}", prefix, model));
                 }
             }
         }
