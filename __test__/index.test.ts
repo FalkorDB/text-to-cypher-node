@@ -144,9 +144,9 @@ describe('TextToCypher', () => {
       // Check that we have models from different providers
       // OpenAI models don't have prefix
       const hasOpenAI = models.some(m => m.startsWith('gpt-'));
-      // Other providers have prefixes
-      const hasAnthropic = models.some(m => m.startsWith('anthropic:'));
-      const hasGemini = models.some(m => m.startsWith('gemini:'));
+      // Other providers have double-colon prefixes (genai format)
+      const hasAnthropic = models.some(m => m.startsWith('anthropic::'));
+      const hasGemini = models.some(m => m.startsWith('gemini::'));
 
       expect(hasOpenAI).toBe(true);
       expect(hasAnthropic).toBe(true);
