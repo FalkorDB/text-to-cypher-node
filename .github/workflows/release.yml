@@ -62,24 +62,24 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 18
           cache: npm
 
       - name: Install
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
           
       - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             ~/.cargo/registry/index/
@@ -113,7 +113,7 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: bindings-${{ matrix.settings.target }}
           path: text-to-cypher.*.node
@@ -128,10 +128,10 @@ jobs:
   #   runs-on: macos-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v6
+  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
   #
   #     - name: Setup node
-  #       uses: actions/setup-node@v6
+  #       uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
   #       with:
   #         node-version: 18
   #         cache: npm
@@ -140,13 +140,13 @@ jobs:
   #       run: npm install
   #
   #     - name: Download macOS x64 artifact
-  #       uses: actions/download-artifact@v7
+  #       uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
   #       with:
   #         name: bindings-x86_64-apple-darwin
   #         path: artifacts
   #
   #     - name: Download macOS arm64 artifact
-  #       uses: actions/download-artifact@v7
+  #       uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
   #       with:
   #         name: bindings-aarch64-apple-darwin
   #         path: artifacts
@@ -155,7 +155,7 @@ jobs:
   #       run: npm run universal
   #
   #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v6
+  #       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
   #       with:
   #         name: bindings-universal-apple-darwin
   #         path: text-to-cypher.*.node
@@ -171,10 +171,10 @@ jobs:
       - build
       # - universal-macOS
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: 22
           cache: npm
@@ -187,7 +187,7 @@ jobs:
         run: npm install
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           path: . 
           pattern: bindings-*
@@ -198,7 +198,7 @@ jobs:
 
       # Re-setup node AFTER artifact manipulation
       - name: Setup node for publishing
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
