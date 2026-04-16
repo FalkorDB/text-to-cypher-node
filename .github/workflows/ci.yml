@@ -38,6 +38,7 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add x86_64-unknown-linux-musl &&
+              cargo install cargo-zigbuild --version 0.19.8 --locked &&
               npm run build -- --target x86_64-unknown-linux-musl --cross-compile &&
               llvm-strip *.node
           - host: ubuntu-latest
@@ -47,6 +48,7 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add aarch64-unknown-linux-gnu &&
+              cargo install cargo-zigbuild --version 0.19.8 --locked &&
               npm run build -- --target aarch64-unknown-linux-gnu --cross-compile &&
               llvm-strip *.node
 
