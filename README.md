@@ -303,7 +303,7 @@ try {
 
 ## Requirements
 
-- Node.js >= 10
+- Node.js >= 20
 - FalkorDB instance running and accessible
 - API key for your chosen AI provider (OpenAI, Anthropic, etc.)
 
@@ -325,7 +325,7 @@ npm test
 ### Prerequisites for Building
 
 - Rust toolchain (install from [rustup.rs](https://rustup.rs/))
-- Node.js >= 10
+- Node.js >= 20
 - C++ compiler (platform-specific)
 
 ## Platform Support
@@ -337,6 +337,16 @@ Pre-built binaries are available for:
 - macOS x64 (Intel)
 - macOS ARM64 (Apple Silicon)
 - Windows x64
+
+## Releasing
+
+Versions are derived automatically from Git tags. To publish a new release:
+
+1. Create a GitHub release with a semver tag (e.g., `v1.2.0`)
+2. The release workflow builds all platform binaries and publishes to npm
+3. The version in `package.json` (`0.0.0`) is a placeholder — the release CI sets the real version from the tag
+
+No manual `package.json` version edits are needed.
 
 ## Contributing
 
