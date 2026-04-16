@@ -33,16 +33,14 @@ jobs:
               strip *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-zig
             build: |-
               set -e &&
-              apk add --no-cache gcc musl-dev linux-headers &&
               rustup update stable &&
               rustup target add x86_64-unknown-linux-musl &&
-              export CC=gcc &&
-              export CXX=g++ &&
-              npm run build -- --target x86_64-unknown-linux-musl &&
-              strip *.node
+              cargo install cargo-zigbuild --version 0.19.8 --locked &&
+              npm run build -- --target x86_64-unknown-linux-musl --cross-compile &&
+              llvm-strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-zig
@@ -50,10 +48,11 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add aarch64-unknown-linux-gnu &&
-              npm run build -- --target aarch64-unknown-linux-gnu --zig &&
+              cargo install cargo-zigbuild --version 0.19.8 --locked &&
+              npm run build -- --target aarch64-unknown-linux-gnu --cross-compile &&
               llvm-strip *.node
 
-    name: stable - ${{ matrix.settings.target }} - node@18
+    name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
 
     steps:
@@ -61,9 +60,8 @@ jobs:
 
       - name: Setup node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
-        if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
       - name: Install

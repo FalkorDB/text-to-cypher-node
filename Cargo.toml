@@ -12,8 +12,8 @@ keywords = ["napi", "cypher", "graph", "database", "falkordb"]
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2", default-features = false, features = ["napi4", "async"] }
-napi-derive = "2"
+napi = { version = "3", default-features = false, features = ["napi4", "async"] }
+napi-derive = "3"
 # Disable default features to avoid including server dependencies (actix-web, etc.)
 # We only need the core library functionality for the bindings
 # Explicitly set features to empty array to ensure no features are enabled
