@@ -29,8 +29,8 @@ jobs:
             build: |-
               set -e &&
               rustup update stable &&
-              apt-get update &&
-              apt-get install -y --no-install-recommends cmake make &&
+              export TARGET_CC=clang TARGET_CXX=clang++ &&
+              export CC_x86_64_unknown_linux_gnu=clang CXX_x86_64_unknown_linux_gnu=clang++ &&
               AWS_LC_SYS_CMAKE_BUILDER=1 npm run build -- --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-latest
@@ -156,4 +156,3 @@ jobs:
 
       - name: Test bindings
         run: npm test
-
