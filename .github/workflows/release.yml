@@ -194,8 +194,14 @@ jobs:
           pattern: bindings-*
           merge-multiple: true
 
-      - name: Move artifacts
-        run: npm run artifacts
+      - name: Verify downloaded artifacts
+        run: |
+          count=$(find . -maxdepth 1 -name 'text-to-cypher.*.node' | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No native binding artifacts were downloaded"
+            exit 1
+          fi
+          find . -maxdepth 1 -name 'text-to-cypher.*.node' -print
 
       # Re-setup node AFTER artifact manipulation
       - name: Setup node for publishing
