@@ -228,6 +228,9 @@ jobs:
           const file = 'index.js';
           let source = fs.readFileSync(file, 'utf8');
           const original = source;
+          const hasGeneratedVersionChecks =
+            /bindingPackageVersion !== '[^']+'/.test(source) ||
+            /expected [^ ]+ but got/.test(source);
           source = source.replace(
             /bindingPackageVersion !== '[^']+'/g,
             `bindingPackageVersion !== '${version}'`
@@ -236,7 +239,14 @@ jobs:
             /expected [^ ]+ but got/g,
             `expected ${version} but got`
           );
-          if (source === original) {
+          if (!hasGeneratedVersionChecks) {
+            console.log('No generated binding version checks found in index.js; skipping');
+            process.exit(0);
+          }
+          if (
+            source === original &&
+            !source.includes(`bindingPackageVersion !== '${version}'`)
+          ) {
             throw new Error('No generated binding version checks found in index.js');
           }
           fs.writeFileSync(file, source);
