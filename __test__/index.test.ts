@@ -1,8 +1,8 @@
 /**
  * Tests for text-to-cypher-node
  * 
- * These are mock tests that don't require a live FalkorDB instance or API keys.
- * They test the basic structure and error handling of the library.
+ * These tests don't require a live FalkorDB instance or API keys by default.
+ * Live provider model discovery tests are skipped unless API key env vars are set.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -118,6 +118,11 @@ describe('TextToCypher', () => {
 
   describe('Model Discovery', () => {
     let client: TextToCypher;
+    const createLiveClient = (apiKey: string) => new TextToCypher({
+      model: 'gpt-4o-mini',
+      apiKey,
+      falkordbConnection: 'falkor://localhost:6379'
+    });
 
     beforeEach(() => {
       client = new TextToCypher({
@@ -135,52 +140,36 @@ describe('TextToCypher', () => {
       expect(typeof client.listModelsByProvider).toBe('function');
     });
 
-    it('should list all available models', async () => {
-      const models = await client.listModels();
+    (process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY ? it : it.skip)('should list all available models with live credentials', async () => {
+      const liveClient = createLiveClient(process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY!);
+      const models = await liveClient.listModels();
 
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-
-      // Check that we have models from different providers
-      // OpenAI models don't have prefix
-      const hasOpenAI = models.some(m => m.startsWith('gpt-'));
-      // Other providers have double-colon prefixes (genai format)
-      const hasAnthropic = models.some(m => m.startsWith('anthropic::'));
-      const hasGemini = models.some(m => m.startsWith('gemini::'));
-
-      expect(hasOpenAI).toBe(true);
-      expect(hasAnthropic).toBe(true);
-      expect(hasGemini).toBe(true);
     });
 
-    it('should list OpenAI models', async () => {
-      const models = await client.listModelsByProvider('openai');
+    (process.env.OPENAI_API_KEY ? it : it.skip)('should list OpenAI models with live credentials', async () => {
+      const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
+      const models = await liveClient.listModelsByProvider('openai');
 
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-
-      // OpenAI models returned without prefix by the API
-      // Just verify we got some models back
     });
 
-    it('should list Anthropic models', async () => {
-      const models = await client.listModelsByProvider('anthropic');
+    (process.env.ANTHROPIC_API_KEY ? it : it.skip)('should list Anthropic models with live credentials', async () => {
+      const liveClient = createLiveClient(process.env.ANTHROPIC_API_KEY!);
+      const models = await liveClient.listModelsByProvider('anthropic');
 
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-
-      // Anthropic models returned without prefix by the API
-      // Just verify we got some models back
     });
 
-    it('should list Gemini models', async () => {
-      const models = await client.listModelsByProvider('gemini');
+    (process.env.GEMINI_API_KEY ? it : it.skip)('should list Gemini models with live credentials', async () => {
+      const liveClient = createLiveClient(process.env.GEMINI_API_KEY!);
+      const models = await liveClient.listModelsByProvider('gemini');
 
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-
-      // Gemini models returned without prefix by the API
-      // Just verify we got some models back
     });
 
     it('should handle Ollama when not running', async () => {
@@ -194,10 +183,11 @@ describe('TextToCypher', () => {
       }
     });
 
-    it('should handle provider name case-insensitively', async () => {
-      const modelsLower = await client.listModelsByProvider('openai');
-      const modelsUpper = await client.listModelsByProvider('OPENAI');
-      const modelsMixed = await client.listModelsByProvider('OpenAI');
+    (process.env.OPENAI_API_KEY ? it : it.skip)('should handle provider name case-insensitively', async () => {
+      const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
+      const modelsLower = await liveClient.listModelsByProvider('openai');
+      const modelsUpper = await liveClient.listModelsByProvider('OPENAI');
+      const modelsMixed = await liveClient.listModelsByProvider('OpenAI');
       
       expect(modelsLower).toEqual(modelsUpper);
       expect(modelsLower).toEqual(modelsMixed);

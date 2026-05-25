@@ -212,6 +212,27 @@ jobs:
           fi
           npm version "$VERSION" --no-git-tag-version
 
+      - name: Sync generated binding version
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { version } = require('./package.json');
+          const file = 'index.js';
+          let source = fs.readFileSync(file, 'utf8');
+          const original = source;
+          source = source.replace(
+            /bindingPackageVersion !== '[^']+'/g,
+            `bindingPackageVersion !== '${version}'`
+          );
+          source = source.replace(
+            /expected [^ ]+ but got/g,
+            `expected ${version} but got`
+          );
+          if (source === original) {
+            throw new Error('No generated binding version checks found in index.js');
+          }
+          fs.writeFileSync(file, source);
+          NODE
+
       - name: Publish to npm
         run: npm publish --provenance --access public
-
