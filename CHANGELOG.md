@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15] - 2026-06-02
+
+### Added
+- Token usage reporting: `TextToCypherResponse` now includes an optional `tokenUsage`
+  field aggregating `promptTokens`, `completionTokens`, and `totalTokens` across all LLM
+  calls made while serving a request (cypher generation, final answer, self-healing
+  retries, and skill tool-call rounds). Present on successful responses and omitted when
+  no tokens were consumed.
+
+### Changed
+- Bumped the `text-to-cypher` Rust dependency to `0.1.18`.
+
 ## [0.1.10] - 2026-01-12
 
 ### Added
@@ -60,4 +72,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error handling and propagation from Rust to JavaScript
 - Zero runtime dependencies
 
+[0.1.15]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.15
 [0.1.0]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.0

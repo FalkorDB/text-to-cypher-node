@@ -2056,7 +2056,7 @@ dependencies = [
 
 [[package]]
 name = "text-to-cypher-node"
-version = "0.1.12"
+version = "0.1.15"
 dependencies = [
  "napi",
  "napi-build",
