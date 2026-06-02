@@ -585,9 +585,9 @@ dependencies = [
 
 [[package]]
 name = "genai"
-version = "0.6.1"
+version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f9ea282799f5c6cf09143897251c495883204f04b1db80ab94d80f959ba5962"
+checksum = "1c978ef2c3b5ece57bf0ec25fdd93812ac941c44a569c63ded3ef877907758fa"
 dependencies = [
  "base64",
  "bytes",
@@ -2036,9 +2036,9 @@ dependencies = [
 
 [[package]]
 name = "text-to-cypher"
-version = "0.1.17"
+version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e954ac934faafbf54435d1f242f31f602fcf7d572bfedf9ae3a78a7b60d038e"
+checksum = "614d250eca7e24fa2364d9b7828632a6dc625a523bcadabb1a1145619339df5c"
 dependencies = [
  "async-trait",
  "aws-lc-rs",

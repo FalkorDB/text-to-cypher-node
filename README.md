@@ -216,8 +216,21 @@ interface TextToCypherResponse {
   cypherResult?: string;    // Query execution result
   answer?: string;          // Natural language answer
   error?: string;           // Error message if status is "error"
+  tokenUsage?: TokenUsage;  // Aggregated LLM token usage (omitted when no tokens were spent)
+}
+
+interface TokenUsage {
+  promptTokens: number;     // Total input (prompt) tokens across all LLM calls
+  completionTokens: number; // Total output (completion) tokens across all LLM calls
+  totalTokens: number;      // Total tokens across all LLM calls
 }
 ```
+
+`tokenUsage` aggregates the prompt, completion, and total tokens reported by the LLM
+provider across every call made while serving a request (cypher generation, the final
+answer, self-healing retries, and skill tool-call rounds). It is present on successful
+responses and omitted when no tokens were consumed. Failed requests reject with an error,
+so `tokenUsage` is not surfaced for failures.
 
 ### Message
 

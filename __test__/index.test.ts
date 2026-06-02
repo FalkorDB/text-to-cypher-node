@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TextToCypher } from '../index';
+import type { TextToCypherResponse, TokenUsage } from '../index';
 
 describe('TextToCypher', () => {
   describe('constructor', () => {
@@ -197,6 +198,36 @@ describe('TextToCypher', () => {
       await expect(
         client.listModelsByProvider('invalid-provider')
       ).rejects.toThrow(/Unknown provider/);
+    });
+  });
+
+  describe('TokenUsage', () => {
+    it('should expose an optional tokenUsage field on the response type', () => {
+      const usage: TokenUsage = {
+        promptTokens: 10,
+        completionTokens: 5,
+        totalTokens: 15,
+      };
+
+      const response: TextToCypherResponse = {
+        status: 'success',
+        answer: 'ok',
+        tokenUsage: usage,
+      };
+
+      expect(response.tokenUsage).toBeDefined();
+      expect(response.tokenUsage?.promptTokens).toBe(10);
+      expect(response.tokenUsage?.completionTokens).toBe(5);
+      expect(response.tokenUsage?.totalTokens).toBe(15);
+    });
+
+    it('should allow responses without tokenUsage', () => {
+      const response: TextToCypherResponse = {
+        status: 'error',
+        error: 'boom',
+      };
+
+      expect(response.tokenUsage).toBeUndefined();
     });
   });
 });
