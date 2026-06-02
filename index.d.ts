@@ -215,4 +215,25 @@ export interface TextToCypherResponse {
   answer?: string
   /** Error message if status is "error" */
   error?: string
+  /**
+   * Aggregated token usage across all LLM calls made while serving the request.
+   * Omitted when no tokens were consumed (e.g. failures before any LLM call).
+   */
+  tokenUsage?: TokenUsage
+}
+
+/**
+ * Aggregated token usage for a text-to-cypher request
+ *
+ * A single request may issue several LLM calls (cypher generation, final answer
+ * generation, self-healing retries, and skill tool-call rounds). These counts are
+ * summed across all of those calls.
+ */
+export interface TokenUsage {
+  /** Total input (prompt) tokens consumed across all LLM calls */
+  promptTokens: number
+  /** Total output (completion) tokens produced across all LLM calls */
+  completionTokens: number
+  /** Total tokens consumed across all LLM calls */
+  totalTokens: number
 }

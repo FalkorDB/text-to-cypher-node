@@ -27,9 +27,35 @@ pub struct Message {
     pub content: String,
 }
 
+/// Aggregated token usage for a text-to-cypher request
+///
+/// A single request may issue several LLM calls (cypher generation, final answer
+/// generation, self-healing retries, and skill tool-call rounds). These counts are
+/// summed across all of those calls.
+#[napi(object)]
+#[derive(Debug, Clone)]
+pub struct TokenUsage {
+    /// Total input (prompt) tokens consumed across all LLM calls
+    pub prompt_tokens: f64,
+    /// Total output (completion) tokens produced across all LLM calls
+    pub completion_tokens: f64,
+    /// Total tokens consumed across all LLM calls
+    pub total_tokens: f64,
+}
+
+impl From<text_to_cypher::TokenUsage> for TokenUsage {
+    fn from(usage: text_to_cypher::TokenUsage) -> Self {
+        Self {
+            prompt_tokens: usage.prompt_tokens as f64,
+            completion_tokens: usage.completion_tokens as f64,
+            total_tokens: usage.total_tokens as f64,
+        }
+    }
+}
+
 /// Response from text-to-cypher operations
 #[napi(object)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TextToCypherResponse {
     /// Status of the operation: "success" or "error"
     pub status: String,
@@ -43,6 +69,9 @@ pub struct TextToCypherResponse {
     pub answer: Option<String>,
     /// Error message if status is "error"
     pub error: Option<String>,
+    /// Aggregated token usage across all LLM calls made while serving the request.
+    /// Omitted when no tokens were consumed (e.g. failures before any LLM call).
+    pub token_usage: Option<TokenUsage>,
 }
 
 impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
@@ -54,6 +83,7 @@ impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
             cypher_result: response.cypher_result,
             answer: response.answer,
             error: response.error,
+            token_usage: response.token_usage.map(Into::into),
         }
     }
 }
