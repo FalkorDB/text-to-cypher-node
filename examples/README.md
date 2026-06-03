@@ -36,7 +36,7 @@ redis-cli GRAPH.QUERY demo_graph \
 # Provide an API key (the account must have available quota)
 export OPENAI_API_KEY="sk-..."
 
-# MODEL defaults to gpt-5.5; GRAPH_NAME defaults to demo_graph
+# MODEL defaults to gpt-4o-mini; GRAPH_NAME defaults to demo_graph
 node examples/token-usage.js
 
 # Or load variables from a .env file (Node >= 20.6)

@@ -22,7 +22,7 @@
  *
  * Supported environment variables:
  *   OPENAI_API_KEY / DEFAULT_KEY   - API key forwarded to the provider (required)
- *   MODEL / DEFAULT_MODEL          - model to use (defaults to 'gpt-5.5')
+ *   MODEL / DEFAULT_MODEL          - model to use (defaults to 'gpt-4o-mini')
  *   FALKORDB_CONNECTION            - connection string (defaults to 'falkor://localhost:6379')
  *   GRAPH_NAME                     - graph to query (defaults to 'demo_graph')
  */
@@ -63,7 +63,7 @@ async function main() {
     process.exit(1);
   }
 
-  const model = process.env.MODEL || process.env.DEFAULT_MODEL || 'gpt-5.5';
+  const model = process.env.MODEL || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
   const falkordbConnection = process.env.FALKORDB_CONNECTION || 'falkor://localhost:6379';
   const graphName = process.env.GRAPH_NAME || 'demo_graph';
 

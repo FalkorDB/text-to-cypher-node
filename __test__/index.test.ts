@@ -203,15 +203,25 @@ describe('TextToCypher', () => {
     // text-to-cypher >= 0.1.19 merges each provider's live list with a curated static
     // catalog, so catalog-backed providers return well-known models even without an API key.
     it('should return curated models without an API key', async () => {
+      const noKeyClient = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: '',
+        falkordbConnection: 'falkor://localhost:6379'
+      });
       for (const provider of ['openai', 'anthropic', 'gemini']) {
-        const models = await client.listModelsByProvider(provider);
+        const models = await noKeyClient.listModelsByProvider(provider);
         expect(Array.isArray(models)).toBe(true);
         expect(models.length).toBeGreaterThan(0);
       }
     }, 30000);
 
     it('should aggregate curated models across providers without an API key', async () => {
-      const models = await client.listModels();
+      const noKeyClient = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: '',
+        falkordbConnection: 'falkor://localhost:6379'
+      });
+      const models = await noKeyClient.listModels();
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
       // Non-OpenAI providers are namespaced with a provider prefix.
