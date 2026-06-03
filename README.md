@@ -142,7 +142,7 @@ console.log('Relationships:', schemaObj.relationships);
 
 Lists all available AI models across all supported providers.
 
-**Note:** This method queries all provider APIs (OpenAI, Anthropic, Gemini, Ollama) and aggregates the results. Models are returned with provider prefixes (except OpenAI).
+**Note:** This method queries all provider APIs (OpenAI, Anthropic, Gemini, Ollama) and aggregates the results. Each provider's live results are merged with a small curated static catalog, so providers with a curated list still return their well-known models even when no matching API key is configured. Providers without a curated list (e.g. Ollama) only appear when reachable. Models are returned with provider prefixes (except OpenAI).
 
 **Returns:** `Promise<string[]>` - Array of model names with provider prefixes where applicable
 
@@ -162,7 +162,7 @@ console.log('All available models:', models);
 
 Lists available AI models from a specific provider by querying the actual provider APIs.
 
-**Note:** This method makes real API calls to the AI providers to get current model listings. The availability depends on your API credentials and the current offerings from each provider.
+**Note:** This method merges each provider's live model list with a small curated static catalog. Providers with a curated list (OpenAI, Anthropic, Gemini) still return their well-known models even when no matching API key is configured; an API key adds any additional models the provider reports live. Providers without a curated list (e.g. Ollama) are only returned when reachable.
 
 **Parameters:**
 - `provider` (string): Provider name - `'openai'`, `'anthropic'`, `'gemini'`, or `'ollama'` (case-insensitive)
@@ -231,6 +231,8 @@ provider across every call made while serving a request (cypher generation, the 
 answer, self-healing retries, and skill tool-call rounds). It is present on successful
 responses and omitted when no tokens were consumed. Failed requests reject with an error,
 so `tokenUsage` is not surfaced for failures.
+
+See [examples/token-usage.js](examples/token-usage.js) for a complete working example.
 
 ### Message
 
@@ -313,6 +315,24 @@ try {
   console.error('Exception:', error.message);
 }
 ```
+
+### Tracking Token Usage
+
+Each request aggregates the token counts from every LLM call it makes (cypher generation,
+self-healing retries, skill tool-call rounds, and final answer generation) into
+`response.tokenUsage`:
+
+```javascript
+const response = await client.textToCypher('movies', 'How many actors are there?');
+
+if (response.tokenUsage) {
+  console.log('Prompt tokens:', response.tokenUsage.promptTokens);
+  console.log('Completion tokens:', response.tokenUsage.completionTokens);
+  console.log('Total tokens:', response.tokenUsage.totalTokens);
+}
+```
+
+See [examples/token-usage.js](examples/token-usage.js) for a complete, runnable example.
 
 ## Requirements
 
