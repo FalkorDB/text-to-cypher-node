@@ -370,8 +370,10 @@ impl TextToCypher {
     ///
     /// # Note
     ///
-    /// This method queries the actual AI provider APIs to get the list of available models.
-    /// The availability depends on your API credentials and the current offerings from each provider.
+    /// Each provider's live results are merged with a curated static catalog, so
+    /// providers with a curated list (OpenAI, Anthropic, Gemini) still return their
+    /// well-known models even when no matching API key is configured. Providers without
+    /// a curated list (e.g. Ollama) are only returned when reachable.
     ///
     /// # Returns
     ///

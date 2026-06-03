@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.16] - 2026-06-03
+
+### Added
+- New `examples/token-usage.js` example demonstrating how to read aggregated
+  `tokenUsage` (`promptTokens`, `completionTokens`, `totalTokens`) from responses for
+  both the full `textToCypher` pipeline and the generation-only `cypherOnly` path.
+- README and examples documentation for token-usage tracking and a clearer note that
+  model discovery merges each provider's live list with a curated static catalog.
+
+### Changed
+- Bumped the `text-to-cypher` Rust dependency to `0.1.19`. `listModels()` /
+  `listModelsByProvider()` now merge live provider results with a curated static model
+  catalog, so providers with a curated list return their well-known models even when no
+  matching API key is configured.
+
 ## [0.1.15] - 2026-06-02
 
 ### Added
@@ -72,5 +87,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error handling and propagation from Rust to JavaScript
 - Zero runtime dependencies
 
+[0.1.16]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.16
 [0.1.15]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.15
 [0.1.0]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.0
