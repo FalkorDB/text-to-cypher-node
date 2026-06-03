@@ -152,11 +152,16 @@ const models = await client.listModels();
 console.log('All available models:', models);
 // Output: [
 //   'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo',  // OpenAI (no prefix)
-//   'anthropic:claude-sonnet-4-5', 'anthropic:claude-opus-4-5',  // Anthropic
-//   'gemini:gemini-2.5-pro', 'gemini:gemini-3-pro-preview',  // Gemini
-//   'ollama:llama3', 'ollama:mistral'  // Ollama (if running)
+//   'anthropic::claude-sonnet-4-5', 'anthropic::claude-opus-4-5',  // Anthropic
+//   'gemini::gemini-2.5-pro', 'gemini::gemini-3-pro-preview',  // Gemini
+//   'ollama::llama3', 'ollama::mistral'  // Ollama (if running)
 // ]
 ```
+
+Non-OpenAI models are namespaced with a `provider::model` (double-colon) prefix in the
+returned list. When passing a model to the constructor you can use either that form or the
+shorter `provider:model` (single-colon) form — both are accepted (e.g.
+`'anthropic::claude-sonnet-4-5'` and `'anthropic:claude-sonnet-4-5'` are equivalent).
 
 ### `listModelsByProvider(provider)`
 
