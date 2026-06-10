@@ -59,6 +59,7 @@ Creates a new text-to-cypher client.
 - `options.model` (string): AI model to use (e.g., `'gpt-4o-mini'`, `'anthropic:claude-3'`, `'gemini:gemini-2.0-flash-exp'`)
 - `options.apiKey` (string): API key for the AI service
 - `options.falkordbConnection` (string): FalkorDB connection string (e.g., `'falkor://localhost:6379'`)
+- `options.llmEndpoint` (string, optional): Custom LLM provider endpoint/base URL for OpenAI-compatible local providers such as LM Studio (e.g., `'http://localhost:1234/v1'`)
 
 **Example:**
 ```javascript
@@ -66,6 +67,17 @@ const client = new TextToCypher({
   model: 'gpt-4o-mini',
   apiKey: 'sk-...',
   falkordbConnection: 'falkor://localhost:6379'
+});
+```
+
+For LM Studio or another OpenAI-compatible local server, pass the local endpoint:
+
+```javascript
+const client = new TextToCypher({
+  model: 'openai::google/gemma-4-e4b',
+  apiKey: 'lm-studio',
+  falkordbConnection: 'falkor://localhost:6379',
+  llmEndpoint: 'http://localhost:1234/v1'
 });
 ```
 
