@@ -25,6 +25,7 @@ describe('TextToCypher', () => {
       const models = [
         'gpt-4o-mini',
         'gpt-4o',
+        'openai:local-model',
         'anthropic:claude-3',
         'gemini:gemini-2.0-flash-exp'
       ];
@@ -37,6 +38,17 @@ describe('TextToCypher', () => {
         });
         expect(client).toBeInstanceOf(TextToCypher);
       });
+    });
+
+    it('should accept a custom LLM endpoint', () => {
+      const client = new TextToCypher({
+        model: 'openai::local-model',
+        apiKey: 'test-key',
+        falkordbConnection: 'falkor://localhost:6379',
+        llmEndpoint: 'http://localhost:1234/v1'
+      });
+
+      expect(client).toBeInstanceOf(TextToCypher);
     });
   });
 
