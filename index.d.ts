@@ -193,6 +193,8 @@ export interface ClientOptions {
   apiKey: string
   /** FalkorDB connection string (e.g., "falkor://localhost:6379") */
   falkordbConnection: string
+  /** Optional LLM provider endpoint/base URL override */
+  llmEndpoint?: string
 }
 
 /** A chat message in the conversation */
