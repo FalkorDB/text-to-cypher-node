@@ -56,7 +56,7 @@ main().catch(console.error);
 Creates a new text-to-cypher client.
 
 **Parameters:**
-- `options.model` (string): AI model to use (e.g., `'gpt-4o-mini'`, `'anthropic:claude-3'`, `'gemini:gemini-2.0-flash-exp'`)
+- `options.model` (string): AI model to use (e.g., `'gpt-4o-mini'`, `'openai:local-model'`, `'anthropic:claude-3'`, `'gemini:gemini-2.0-flash-exp'`)
 - `options.apiKey` (string): API key for the AI service
 - `options.falkordbConnection` (string): FalkorDB connection string (e.g., `'falkor://localhost:6379'`)
 - `options.llmEndpoint` (string, optional): Custom LLM provider endpoint/base URL for OpenAI-compatible local providers such as LM Studio (e.g., `'http://localhost:1234/v1'`)
