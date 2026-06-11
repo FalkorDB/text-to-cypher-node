@@ -15,6 +15,8 @@ pub struct ClientOptions {
     pub api_key: String,
     /// FalkorDB connection string (e.g., "falkor://localhost:6379")
     pub falkordb_connection: String,
+    /// Optional LLM provider endpoint/base URL override
+    pub llm_endpoint: Option<String>,
 }
 
 /// A chat message in the conversation
@@ -94,7 +96,7 @@ fn normalize_model_name(model: &str) -> String {
         return model.to_string();
     }
     // Convert known single-colon provider prefixes to genai's "::" namespace format
-    for prefix in &["anthropic:", "gemini:", "ollama:"] {
+    for prefix in &["openai:", "anthropic:", "gemini:", "ollama:"] {
         if model.starts_with(prefix) {
             let provider = &prefix[..prefix.len() - 1];
             let model_name = &model[prefix.len()..];
@@ -148,11 +150,14 @@ impl TextToCypher {
     #[napi(constructor)]
     pub fn new(options: ClientOptions) -> Result<Self> {
         let model = normalize_model_name(&options.model);
-        let client = TextToCypherClient::new(
+        let mut client = TextToCypherClient::new(
             model,
             options.api_key,
             options.falkordb_connection,
         );
+        if let Some(endpoint) = options.llm_endpoint {
+            client = client.with_llm_endpoint(endpoint);
+        }
 
         Ok(Self { client })
     }
