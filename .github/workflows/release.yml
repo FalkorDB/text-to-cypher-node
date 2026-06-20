@@ -9,10 +9,9 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          # macOS x64 disabled due to billing issues
-          # - host: macos-latest-large
-          #   build: npm run build -- --target x86_64-apple-darwin
-          #   target: x86_64-apple-darwin
+          - host: macos-latest-large
+            build: npm run build -- --target x86_64-apple-darwin
+            target: x86_64-apple-darwin
           - host: macos-latest
             build: npm run build -- --target aarch64-apple-darwin
             target: aarch64-apple-darwin
@@ -120,47 +119,45 @@ jobs:
           path: text-to-cypher.*.node
           if-no-files-found: error
 
-  # universal-macOS job disabled - requires both x64 and ARM64 builds
-  # Currently x64 is disabled due to billing issues
-  # universal-macOS:
-  #   name: Build universal macOS binary
-  #   needs:
-  #     - build
-  #   runs-on: macos-latest
-  #
-  #   steps:
-  #     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-  #
-  #     - name: Setup node
-  #       uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-  #       with:
-  #         node-version: 20
-  #         cache: npm
-  #
-  #     - name: Install dependencies
-  #       run: npm install
-  #
-  #     - name: Download macOS x64 artifact
-  #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-  #       with:
-  #         name: bindings-x86_64-apple-darwin
-  #         path: artifacts
-  #
-  #     - name: Download macOS arm64 artifact
-  #       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-  #       with:
-  #         name: bindings-aarch64-apple-darwin
-  #         path: artifacts
-  #
-  #     - name: Combine binaries
-  #       run: npm run universal
-  #
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-  #       with:
-  #         name: bindings-universal-apple-darwin
-  #         path: text-to-cypher.*.node
-  #         if-no-files-found: error
+  universal-macOS:
+    name: Build universal macOS binary
+    needs:
+      - build
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Setup node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bindings-x86_64-apple-darwin
+          path: artifacts
+
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bindings-aarch64-apple-darwin
+          path: artifacts
+
+      - name: Combine binaries
+        run: npm run universal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bindings-universal-apple-darwin
+          path: text-to-cypher.*.node
+          if-no-files-found: error
 
   publish:
     name: Publish to npm
@@ -170,7 +167,7 @@ jobs:
       id-token: write
     needs:
       - build
-      # - universal-macOS
+      - universal-macOS
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
