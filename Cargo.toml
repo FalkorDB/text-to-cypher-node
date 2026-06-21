@@ -17,11 +17,7 @@ napi-derive = "3"
 # Disable default features to avoid including server dependencies (actix-web, etc.)
 # We only need the core library functionality for the bindings
 # Explicitly set features to empty array to ensure no features are enabled
-#
-# NOTE: text-to-cypher 0.1.21 is not on crates.io yet — pinned to the 0.1.21 release
-# commit via git so this builds now. Switch back to `version = "0.1.21"` once it is
-# published to crates.io (see the PR "Before merge" checklist).
-text-to-cypher = { git = "https://github.com/FalkorDB/text-to-cypher", rev = "ad2179c80170504db7cb8d46cbca701b5ecf851d", default-features = false, features = [] }
+text-to-cypher = { version = "0.1.21", default-features = false, features = [] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

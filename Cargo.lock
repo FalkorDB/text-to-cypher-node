@@ -2064,7 +2064,8 @@ dependencies = [
 [[package]]
 name = "text-to-cypher"
 version = "0.1.21"
-source = "git+https://github.com/FalkorDB/text-to-cypher?rev=ad2179c80170504db7cb8d46cbca701b5ecf851d#ad2179c80170504db7cb8d46cbca701b5ecf851d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4901619f0aa53b8f672e6d867429f0eb3e5b2aed7816b57980f6d4cf088c41ac"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
