@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error handling and propagation from Rust to JavaScript
 - Zero runtime dependencies
 
+[0.1.18]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.18
 [0.1.17]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.17
 [0.1.16]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.16
 [0.1.15]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.15
