@@ -12,7 +12,7 @@ use text_to_cypher::{
 #[napi(object)]
 #[derive(Debug, Clone)]
 pub struct UdfFunctionInput {
-    /// Function name; called as `library.name(...)`
+    /// Function name; the right-hand side of a `library.function(...)` call
     pub name: String,
     /// Optional signature hint (e.g. "(x, y)")
     pub signature_hint: Option<String>,
