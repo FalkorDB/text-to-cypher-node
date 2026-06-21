@@ -3,7 +3,32 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
-use text_to_cypher::{AdapterKind, ChatMessage, ChatRequest, ChatRole, TextToCypherClient};
+use text_to_cypher::{
+    AdapterKind, ChatMessage, ChatRequest, ChatRole, TextToCypherClient, UdfCatalog, UdfFunction,
+    UdfLibrary,
+};
+
+/// A user-defined function to surface to the model.
+#[napi(object)]
+#[derive(Debug, Clone)]
+pub struct UdfFunctionInput {
+    /// Function name; called as `library.name(...)`
+    pub name: String,
+    /// Optional signature hint (e.g. "(x, y)")
+    pub signature_hint: Option<String>,
+    /// Optional human-readable description
+    pub description: Option<String>,
+}
+
+/// A user-defined function library (namespace) and its functions.
+#[napi(object)]
+#[derive(Debug, Clone)]
+pub struct UdfLibraryInput {
+    /// Library name; the left side of a `library.function(...)` call
+    pub name: String,
+    /// Functions registered in this library
+    pub functions: Vec<UdfFunctionInput>,
+}
 
 /// Options for creating a TextToCypher client
 #[napi(object)]
@@ -17,6 +42,15 @@ pub struct ClientOptions {
     pub falkordb_connection: String,
     /// Optional LLM provider endpoint/base URL override
     pub llm_endpoint: Option<String>,
+    /// When true, discover the connected instance's user-defined functions (UDFs) and surface their
+    /// `library.function` call targets to the model. Off by default. This is a client-level option,
+    /// so it applies to `textToCypher`, `textToCypherWithMessages`, and `cypherOnly` (i.e. it may
+    /// run `GRAPH.UDF LIST` against FalkorDB during query generation). Ignored when `udfs` is set.
+    pub discover_udfs: Option<bool>,
+    /// A caller-supplied UDF catalog to surface to the model. Takes precedence over `discoverUdfs`.
+    /// Use this when you already have the UDF list (e.g. from `GRAPH.UDF LIST`) to avoid an extra
+    /// discovery round-trip.
+    pub udfs: Option<Vec<UdfLibraryInput>>,
 }
 
 /// A chat message in the conversation
@@ -150,13 +184,34 @@ impl TextToCypher {
     #[napi(constructor)]
     pub fn new(options: ClientOptions) -> Result<Self> {
         let model = normalize_model_name(&options.model);
-        let mut client = TextToCypherClient::new(
-            model,
-            options.api_key,
-            options.falkordb_connection,
-        );
+        let mut client =
+            TextToCypherClient::new(model, options.api_key, options.falkordb_connection);
         if let Some(endpoint) = options.llm_endpoint {
             client = client.with_llm_endpoint(endpoint);
+        }
+
+        // UDF context: an explicit catalog wins; otherwise optionally discover from the instance.
+        if let Some(libraries) = options.udfs {
+            let catalog = UdfCatalog::from_libraries(
+                libraries
+                    .into_iter()
+                    .map(|library| UdfLibrary {
+                        name: library.name,
+                        functions: library
+                            .functions
+                            .into_iter()
+                            .map(|function| UdfFunction {
+                                name: function.name,
+                                signature_hint: function.signature_hint,
+                                description: function.description,
+                            })
+                            .collect(),
+                    })
+                    .collect(),
+            );
+            client = client.with_udfs(catalog);
+        } else if options.discover_udfs.unwrap_or(false) {
+            client = client.with_discovered_udfs();
         }
 
         Ok(Self { client })
@@ -302,7 +357,10 @@ impl TextToCypher {
 
         match self.client.cypher_only(graph_name, request).await {
             Ok(response) => Ok(response.into()),
-            Err(e) => Err(Error::from_reason(format!("Cypher generation failed: {}", e))),
+            Err(e) => Err(Error::from_reason(format!(
+                "Cypher generation failed: {}",
+                e
+            ))),
         }
     }
 
@@ -326,7 +384,10 @@ impl TextToCypher {
     pub async fn discover_schema(&self, graph_name: String) -> Result<String> {
         match self.client.discover_schema(graph_name).await {
             Ok(schema) => Ok(schema),
-            Err(e) => Err(Error::from_reason(format!("Schema discovery failed: {}", e))),
+            Err(e) => Err(Error::from_reason(format!(
+                "Schema discovery failed: {}",
+                e
+            ))),
         }
     }
 
@@ -348,7 +409,10 @@ impl TextToCypher {
     /// ```
     #[napi]
     pub async fn list_models(&self) -> Result<Vec<String>> {
-        let all_provider_models = self.client.list_all_models().await
+        let all_provider_models = self
+            .client
+            .list_all_models()
+            .await
             .map_err(|e| Error::from_reason(format!("Failed to list models: {}", e)))?;
 
         let mut all_models = Vec::new();

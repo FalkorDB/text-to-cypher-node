@@ -195,6 +195,19 @@ export interface ClientOptions {
   falkordbConnection: string
   /** Optional LLM provider endpoint/base URL override */
   llmEndpoint?: string
+  /**
+   * When true, discover the connected instance's user-defined functions (UDFs) and surface their
+   * `library.function` call targets to the model. Off by default. This is a client-level option,
+   * so it applies to `textToCypher`, `textToCypherWithMessages`, and `cypherOnly` (i.e. it may
+   * run `GRAPH.UDF LIST` against FalkorDB during query generation). Ignored when `udfs` is set.
+   */
+  discoverUdfs?: boolean
+  /**
+   * A caller-supplied UDF catalog to surface to the model. Takes precedence over `discoverUdfs`.
+   * Use this when you already have the UDF list (e.g. from `GRAPH.UDF LIST`) to avoid an extra
+   * discovery round-trip.
+   */
+  udfs?: Array<UdfLibraryInput>
 }
 
 /** A chat message in the conversation */
@@ -240,4 +253,22 @@ export interface TokenUsage {
   completionTokens: number
   /** Total tokens consumed across all LLM calls */
   totalTokens: number
+}
+
+/** A user-defined function to surface to the model. */
+export interface UdfFunctionInput {
+  /** Function name; called as `library.name(...)` */
+  name: string
+  /** Optional signature hint (e.g. "(x, y)") */
+  signatureHint?: string
+  /** Optional human-readable description */
+  description?: string
+}
+
+/** A user-defined function library (namespace) and its functions. */
+export interface UdfLibraryInput {
+  /** Library name; the left side of a `library.function(...)` call */
+  name: string
+  /** Functions registered in this library */
+  functions: Array<UdfFunctionInput>
 }
