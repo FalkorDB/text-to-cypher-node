@@ -1,6 +1,6 @@
 /**
  * Tests for text-to-cypher-node
- * 
+ *
  * These tests don't require a live FalkorDB instance or API keys by default.
  * Live provider model discovery tests are skipped unless API key env vars are set.
  */
@@ -15,7 +15,7 @@ describe('TextToCypher', () => {
       const client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'test-key',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
 
       expect(client).toBeInstanceOf(TextToCypher);
@@ -27,14 +27,14 @@ describe('TextToCypher', () => {
         'gpt-4o',
         'openai:local-model',
         'anthropic:claude-3',
-        'gemini:gemini-2.0-flash-exp'
+        'gemini:gemini-2.0-flash-exp',
       ];
 
-      models.forEach(model => {
+      models.forEach((model) => {
         const client = new TextToCypher({
           model,
           apiKey: 'test-key',
-          falkordbConnection: 'falkor://localhost:6379'
+          falkordbConnection: 'falkor://localhost:6379',
         });
         expect(client).toBeInstanceOf(TextToCypher);
       });
@@ -45,7 +45,49 @@ describe('TextToCypher', () => {
         model: 'openai::local-model',
         apiKey: 'test-key',
         falkordbConnection: 'falkor://localhost:6379',
-        llmEndpoint: 'http://localhost:1234/v1'
+        llmEndpoint: 'http://localhost:1234/v1',
+      });
+
+      expect(client).toBeInstanceOf(TextToCypher);
+    });
+
+    it('should accept discoverUdfs', () => {
+      const client = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: 'test-key',
+        falkordbConnection: 'falkor://localhost:6379',
+        discoverUdfs: true,
+      });
+
+      expect(client).toBeInstanceOf(TextToCypher);
+    });
+
+    it('should accept a caller-supplied udfs catalog', () => {
+      const client = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: 'test-key',
+        falkordbConnection: 'falkor://localhost:6379',
+        udfs: [
+          {
+            name: 'geo',
+            functions: [
+              { name: 'distance' },
+              { name: 'within', signatureHint: '(a, b)', description: 'point in region' },
+            ],
+          },
+        ],
+      });
+
+      expect(client).toBeInstanceOf(TextToCypher);
+    });
+
+    it('should accept udfs taking precedence over discoverUdfs', () => {
+      const client = new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey: 'test-key',
+        falkordbConnection: 'falkor://localhost:6379',
+        discoverUdfs: true,
+        udfs: [{ name: 'mylib', functions: [{ name: 'Foo' }] }],
       });
 
       expect(client).toBeInstanceOf(TextToCypher);
@@ -59,7 +101,7 @@ describe('TextToCypher', () => {
       client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'test-key',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
     });
 
@@ -85,12 +127,10 @@ describe('TextToCypher', () => {
       const client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'invalid-key',
-        falkordbConnection: 'falkor://invalid:9999'
+        falkordbConnection: 'falkor://invalid:9999',
       });
 
-      await expect(
-        client.textToCypher('test', 'test question')
-      ).rejects.toThrow();
+      await expect(client.textToCypher('test', 'test question')).rejects.toThrow();
     });
   });
 
@@ -101,7 +141,7 @@ describe('TextToCypher', () => {
       client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'test-key',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
     });
 
@@ -109,39 +149,36 @@ describe('TextToCypher', () => {
       const messages = [
         { role: 'user', content: 'Hello' },
         { role: 'assistant', content: 'Hi' },
-        { role: 'system', content: 'System message' }
+        { role: 'system', content: 'System message' },
       ];
 
       // This will fail without a real connection, but tests the interface
-      await expect(
-        client.textToCypherWithMessages('test', messages)
-      ).rejects.toThrow();
+      await expect(client.textToCypherWithMessages('test', messages)).rejects.toThrow();
     });
 
     it('should reject invalid message roles', async () => {
-      const messages = [
-        { role: 'invalid-role', content: 'Hello' }
-      ];
+      const messages = [{ role: 'invalid-role', content: 'Hello' }];
 
-      await expect(
-        client.textToCypherWithMessages('test', messages)
-      ).rejects.toThrow(/Invalid message role/);
+      await expect(client.textToCypherWithMessages('test', messages)).rejects.toThrow(
+        /Invalid message role/
+      );
     });
   });
 
   describe('Model Discovery', () => {
     let client: TextToCypher;
-    const createLiveClient = (apiKey: string) => new TextToCypher({
-      model: 'gpt-4o-mini',
-      apiKey,
-      falkordbConnection: 'falkor://localhost:6379'
-    });
+    const createLiveClient = (apiKey: string) =>
+      new TextToCypher({
+        model: 'gpt-4o-mini',
+        apiKey,
+        falkordbConnection: 'falkor://localhost:6379',
+      });
 
     beforeEach(() => {
       client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'test-key',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
     });
 
@@ -153,37 +190,49 @@ describe('TextToCypher', () => {
       expect(typeof client.listModelsByProvider).toBe('function');
     });
 
-    (process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY ? it : it.skip)('should list all available models with live credentials', async () => {
-      const liveClient = createLiveClient(process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY!);
-      const models = await liveClient.listModels();
+    (process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY ? it : it.skip)(
+      'should list all available models with live credentials',
+      async () => {
+        const liveClient = createLiveClient(process.env.TEXT_TO_CYPHER_MODEL_DISCOVERY_API_KEY!);
+        const models = await liveClient.listModels();
 
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-    });
+        expect(Array.isArray(models)).toBe(true);
+        expect(models.length).toBeGreaterThan(0);
+      }
+    );
 
-    (process.env.OPENAI_API_KEY ? it : it.skip)('should list OpenAI models with live credentials', async () => {
-      const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
-      const models = await liveClient.listModelsByProvider('openai');
+    (process.env.OPENAI_API_KEY ? it : it.skip)(
+      'should list OpenAI models with live credentials',
+      async () => {
+        const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
+        const models = await liveClient.listModelsByProvider('openai');
 
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-    });
+        expect(Array.isArray(models)).toBe(true);
+        expect(models.length).toBeGreaterThan(0);
+      }
+    );
 
-    (process.env.ANTHROPIC_API_KEY ? it : it.skip)('should list Anthropic models with live credentials', async () => {
-      const liveClient = createLiveClient(process.env.ANTHROPIC_API_KEY!);
-      const models = await liveClient.listModelsByProvider('anthropic');
+    (process.env.ANTHROPIC_API_KEY ? it : it.skip)(
+      'should list Anthropic models with live credentials',
+      async () => {
+        const liveClient = createLiveClient(process.env.ANTHROPIC_API_KEY!);
+        const models = await liveClient.listModelsByProvider('anthropic');
 
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-    });
+        expect(Array.isArray(models)).toBe(true);
+        expect(models.length).toBeGreaterThan(0);
+      }
+    );
 
-    (process.env.GEMINI_API_KEY ? it : it.skip)('should list Gemini models with live credentials', async () => {
-      const liveClient = createLiveClient(process.env.GEMINI_API_KEY!);
-      const models = await liveClient.listModelsByProvider('gemini');
+    (process.env.GEMINI_API_KEY ? it : it.skip)(
+      'should list Gemini models with live credentials',
+      async () => {
+        const liveClient = createLiveClient(process.env.GEMINI_API_KEY!);
+        const models = await liveClient.listModelsByProvider('gemini');
 
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-    });
+        expect(Array.isArray(models)).toBe(true);
+        expect(models.length).toBeGreaterThan(0);
+      }
+    );
 
     it('should handle Ollama when not running', async () => {
       // Ollama might not be running in CI, so we expect this to potentially fail
@@ -196,20 +245,23 @@ describe('TextToCypher', () => {
       }
     });
 
-    (process.env.OPENAI_API_KEY ? it : it.skip)('should handle provider name case-insensitively', async () => {
-      const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
-      const modelsLower = await liveClient.listModelsByProvider('openai');
-      const modelsUpper = await liveClient.listModelsByProvider('OPENAI');
-      const modelsMixed = await liveClient.listModelsByProvider('OpenAI');
-      
-      expect(modelsLower).toEqual(modelsUpper);
-      expect(modelsLower).toEqual(modelsMixed);
-    });
+    (process.env.OPENAI_API_KEY ? it : it.skip)(
+      'should handle provider name case-insensitively',
+      async () => {
+        const liveClient = createLiveClient(process.env.OPENAI_API_KEY!);
+        const modelsLower = await liveClient.listModelsByProvider('openai');
+        const modelsUpper = await liveClient.listModelsByProvider('OPENAI');
+        const modelsMixed = await liveClient.listModelsByProvider('OpenAI');
+
+        expect(modelsLower).toEqual(modelsUpper);
+        expect(modelsLower).toEqual(modelsMixed);
+      }
+    );
 
     it('should reject invalid provider', async () => {
-      await expect(
-        client.listModelsByProvider('invalid-provider')
-      ).rejects.toThrow(/Unknown provider/);
+      await expect(client.listModelsByProvider('invalid-provider')).rejects.toThrow(
+        /Unknown provider/
+      );
     });
 
     // text-to-cypher >= 0.1.19 merges each provider's live list with a curated static
@@ -218,7 +270,7 @@ describe('TextToCypher', () => {
       const noKeyClient = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: '',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
       for (const provider of ['openai', 'anthropic', 'gemini']) {
         const models = await noKeyClient.listModelsByProvider(provider);
@@ -231,13 +283,13 @@ describe('TextToCypher', () => {
       const noKeyClient = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: '',
-        falkordbConnection: 'falkor://localhost:6379'
+        falkordbConnection: 'falkor://localhost:6379',
       });
       const models = await noKeyClient.listModels();
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
       // Non-OpenAI providers are namespaced with a provider prefix.
-      expect(models.some(model => model.includes('::'))).toBe(true);
+      expect(models.some((model) => model.includes('::'))).toBe(true);
     }, 30000);
   });
 

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-06-21
+
+### Added
+- **UDF context**: surface a FalkorDB instance's user-defined functions to the model so generated
+  Cypher can call them (`RETURN library.function(...)`). New `ClientOptions` fields:
+  - `discoverUdfs?: boolean` — discover instance UDFs via `GRAPH.UDF LIST` during query generation
+    (off by default; client-level, also applies to `cypherOnly`).
+  - `udfs?: UdfLibraryInput[]` — a caller-supplied catalog (takes precedence over `discoverUdfs`)
+    to avoid an extra discovery round-trip when the UDF list is already known.
+
+### Changed
+- Bumped the `text-to-cypher` Rust dependency to `0.2.0` (UDF context + falkordb-rs `0.9.0`). The
+  binding's existing public TypeScript API is unchanged; the new options are additive and opt-in.
+
 ## [0.1.18] - 2026-06-20
 
 ### Changed
@@ -106,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error handling and propagation from Rust to JavaScript
 - Zero runtime dependencies
 
+[0.2.0]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.2.0
 [0.1.18]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.18
 [0.1.17]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.17
 [0.1.16]: https://github.com/FalkorDB/text-to-cypher-node/releases/tag/v0.1.16

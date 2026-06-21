@@ -60,6 +60,8 @@ Creates a new text-to-cypher client.
 - `options.apiKey` (string): API key for the AI service
 - `options.falkordbConnection` (string): FalkorDB connection string (e.g., `'falkor://localhost:6379'`)
 - `options.llmEndpoint` (string, optional): Custom LLM provider endpoint/base URL for OpenAI-compatible local providers such as LM Studio (e.g., `'http://localhost:1234/v1'`)
+- `options.discoverUdfs` (boolean, optional): When `true`, discover the connected instance's user-defined functions (UDFs) via `GRAPH.UDF LIST` and surface their `library.function` call targets to the model. Off by default. Client-level — applies to `textToCypher`, `textToCypherWithMessages`, and `cypherOnly`. Ignored when `udfs` is provided.
+- `options.udfs` (`UdfLibraryInput[]`, optional): A caller-supplied UDF catalog to surface to the model. Takes precedence over `discoverUdfs` — use it when you already have the UDF list (e.g. from `GRAPH.UDF LIST`) to avoid an extra discovery round-trip.
 
 **Example:**
 ```javascript
@@ -78,6 +80,26 @@ const client = new TextToCypher({
   apiKey: 'lm-studio',
   falkordbConnection: 'falkor://localhost:6379',
   llmEndpoint: 'http://localhost:1234/v1'
+});
+```
+
+To let generated Cypher call your instance's UDFs, either discover them automatically or pass a catalog you already have:
+
+```javascript
+// Auto-discover (one GRAPH.UDF LIST during generation)
+const client = new TextToCypher({
+  model: 'gpt-4o-mini',
+  apiKey: 'sk-...',
+  falkordbConnection: 'falkor://localhost:6379',
+  discoverUdfs: true
+});
+
+// Or supply a catalog you already fetched (no extra round-trip)
+const client = new TextToCypher({
+  model: 'gpt-4o-mini',
+  apiKey: 'sk-...',
+  falkordbConnection: 'falkor://localhost:6379',
+  udfs: [{ name: 'geo', functions: [{ name: 'distance' }, { name: 'within' }] }]
 });
 ```
 
