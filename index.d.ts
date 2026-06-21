@@ -257,7 +257,7 @@ export interface TokenUsage {
 
 /** A user-defined function to surface to the model. */
 export interface UdfFunctionInput {
-  /** Function name; called as `library.name(...)` */
+  /** Function name; the right-hand side of a `library.function(...)` call */
   name: string
   /** Optional signature hint (e.g. "(x, y)") */
   signatureHint?: string

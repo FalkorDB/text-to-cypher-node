@@ -81,7 +81,7 @@ describe('TextToCypher', () => {
       expect(client).toBeInstanceOf(TextToCypher);
     });
 
-    it('should accept udfs taking precedence over discoverUdfs', () => {
+    it('should accept both udfs and discoverUdfs together', () => {
       const client = new TextToCypher({
         model: 'gpt-4o-mini',
         apiKey: 'test-key',
