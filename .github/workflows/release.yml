@@ -9,7 +9,11 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest-large
+          # macos-15-intel: free standard Intel runner (builds x86_64 natively).
+          # Replaces the retired macos-13 and the paid macos-latest-large.
+          # NOTE: GitHub sunsets all Intel macOS runners ~Aug 2027; migrate x64 to an
+          # arm64 cross-build (or drop the target) before then.
+          - host: macos-15-intel
             build: npm run build -- --target x86_64-apple-darwin
             target: x86_64-apple-darwin
           - host: macos-latest
