@@ -501,9 +501,9 @@ dependencies = [
 
 [[package]]
 name = "falkordb"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "959ad8ef22720aa5db416422445793590731538b3677852d4f40b75c5e992cdb"
+checksum = "ef252f8895e980db625e2dc8d035f683eccc67cdf26585d4da72ab131af93398"
 dependencies = [
  "backon",
  "futures-core",
@@ -2063,9 +2063,9 @@ dependencies = [
 
 [[package]]
 name = "text-to-cypher"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00a29c4f451decf66be3e8c71ead76be5747da2ff9cf3d26e7f4af56d30eb7c4"
+checksum = "16a856bc8d888c066d58d36f11e46596958f2349da233e61457ad0070832b243"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
