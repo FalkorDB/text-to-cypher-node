@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bumped the `text-to-cypher` Rust dependency to `0.2.2` (readable shortest-path results and the
-  new answer-confidence feature). The binding's public TypeScript API is unchanged.
+  new answer-confidence feature). The change is backward-compatible — it only adds the optional
+  `confidence?: number` field to `TextToCypherResponse`.
 
 ## [0.2.0] - 2026-06-21
 
