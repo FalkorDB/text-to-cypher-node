@@ -103,6 +103,9 @@ pub struct TextToCypherResponse {
     pub cypher_result: Option<String>,
     /// Natural language answer generated from the results
     pub answer: Option<String>,
+    /// Model self-reported confidence (0-100) that the answer is correct given the data.
+    /// Omitted when the model does not report a value.
+    pub confidence: Option<u32>,
     /// Error message if status is "error"
     pub error: Option<String>,
     /// Aggregated token usage across all LLM calls made while serving the request.
@@ -118,6 +121,7 @@ impl From<text_to_cypher::TextToCypherResponse> for TextToCypherResponse {
             cypher_query: response.cypher_query,
             cypher_result: response.cypher_result,
             answer: response.answer,
+            confidence: response.confidence.map(u32::from),
             error: response.error,
             token_usage: response.token_usage.map(Into::into),
         }

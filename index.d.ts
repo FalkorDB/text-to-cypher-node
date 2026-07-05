@@ -230,6 +230,11 @@ export interface TextToCypherResponse {
   cypherResult?: string
   /** Natural language answer generated from the results */
   answer?: string
+  /**
+   * Model self-reported confidence (0-100) that the answer is correct given the data.
+   * Omitted when the model does not report a value.
+   */
+  confidence?: number
   /** Error message if status is "error" */
   error?: string
   /**
