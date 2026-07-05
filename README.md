@@ -254,6 +254,7 @@ interface TextToCypherResponse {
   cypherQuery?: string;     // Generated Cypher query
   cypherResult?: string;    // Query execution result
   answer?: string;          // Natural language answer
+  confidence?: number;      // Model self-reported confidence (0-100) in the answer
   error?: string;           // Error message if status is "error"
   tokenUsage?: TokenUsage;  // Aggregated LLM token usage (omitted when no tokens were spent)
 }
