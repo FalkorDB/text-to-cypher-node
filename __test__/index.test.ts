@@ -322,4 +322,25 @@ describe('TextToCypher', () => {
       expect(response.tokenUsage).toBeUndefined();
     });
   });
+
+  describe('Confidence', () => {
+    it('should expose an optional confidence field on the response type', () => {
+      const response: TextToCypherResponse = {
+        status: 'success',
+        answer: 'The cities are A, B, C, and D.',
+        confidence: 100,
+      };
+
+      expect(response.confidence).toBe(100);
+    });
+
+    it('should allow responses without confidence', () => {
+      const response: TextToCypherResponse = {
+        status: 'success',
+        answer: 'ok',
+      };
+
+      expect(response.confidence).toBeUndefined();
+    });
+  });
 });
