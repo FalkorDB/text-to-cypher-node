@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-08-03
+
+### Changed
+- Bumped the `text-to-cypher` Rust dependency to `0.2.7`. Picks up normalization of FalkorDB
+  parameter headers in LLM-generated Cypher (missing `CYPHER` keyword and comma-separated
+  parameter pairs no longer cause parse errors, e.g. with gpt-5 / gpt-5-mini).
+- Synced bundled `templates/` with upstream `0.2.7` (adds `falkordb_reference.txt`).
+
 ## [0.2.1] - 2026-07-05
 
 ### Added
