@@ -18,7 +18,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import semver from 'semver';
 import { parse as parseYaml } from 'yaml';
 
@@ -274,14 +276,27 @@ describe('ci workflow', () => {
     }
   });
 
-  /** The workflows invoke the installer as `./scripts/...`, which needs the bit set in git. */
+  /**
+   * The workflows invoke the installer as `./scripts/install-cargo-zigbuild.sh`, so the
+   * executable bit has to be recorded in git - that is what decides the mode on the Linux
+   * runner that actually runs it.
+   *
+   * Asked of git rather than of the working tree on purpose: this same suite runs on the
+   * Windows matrix entry, and NTFS has no POSIX permission bits, so a `statSync` check
+   * reports 0 there and fails a repository that is perfectly correct.
+   */
   it('ships the cargo-zigbuild installer as an executable', () => {
-    const { mode } = statSync(new URL('scripts/install-cargo-zigbuild.sh', root));
+    const path = 'scripts/install-cargo-zigbuild.sh';
+    const entry = execFileSync('git', ['ls-files', '--stage', '--', path], {
+      cwd: fileURLToPath(root),
+      encoding: 'utf8',
+    });
+
+    expect(entry, `${path} is not tracked by git`).not.toBe('');
 
     expect(
-      (mode & 0o111) !== 0,
-      'scripts/install-cargo-zigbuild.sh is not executable, but the build commands run it ' +
-        'directly as ./scripts/install-cargo-zigbuild.sh.'
-    ).toBe(true);
+      entry.split(' ')[0],
+      `${path} is not executable in git, but the build commands run it directly as ./${path}.`
+    ).toBe('100755');
   });
 });
