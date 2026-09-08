@@ -80,21 +80,35 @@ describe('dev toolchain', () => {
     expect(patterns).toContain('"@vitest/*"');
   });
 
-  it('holds vitest majors back for exactly as long as the Node floor requires it', () => {
-    const holdsVitestMajors =
-      /-\s*dependency-name:\s*"vitest"\s*\n\s*update-types:[^\n]*version-update:semver-major/.test(
-        dependabotConfig
-      );
+  it('holds vitest and @vitest/* majors back for exactly as long as the Node floor requires it', () => {
+    // Both entries are load-bearing, and each fails differently on its own:
+    // ignoring only "vitest" still lets Dependabot raise @vitest/coverage-v8 5
+    // by itself, which is #142 all over again, and ignoring only "@vitest/*"
+    // leaves the vitest 5 half of #143 free to come back.
+    const held = [
+      ...dependabotConfig.matchAll(
+        /-\s*dependency-name:\s*"([^"]+)"\s*\n\s*update-types:[^\n]*version-update:semver-major/g
+      ),
+    ]
+      .map(([, dependencyName]) => dependencyName)
+      .filter(
+        (dependencyName) => dependencyName === 'vitest' || dependencyName.startsWith('@vitest/')
+      )
+      .sort();
+
+    const expected = supportedNodeLine === '20.x' ? ['@vitest/*', 'vitest'] : [];
 
     expect(
-      holdsVitestMajors,
+      held,
       supportedNodeLine === '20.x'
-        ? '.github/dependabot.yml stopped ignoring major vitest updates while engines.node still ' +
-            'allows Node 20. vitest 5 dropped Node 20, so the next major bump would look green and ' +
-            'silently break the support this package advertises.'
+        ? '.github/dependabot.yml must ignore major updates for both "vitest" and "@vitest/*" ' +
+            'while engines.node still allows Node 20. vitest 5 dropped Node 20, so a major bump ' +
+            'would look green and silently break the support this package advertises - and ' +
+            'because the two packages pin each other exactly, holding back only one of them ' +
+            'brings back the PRs that cannot install (#142 and #143).'
         : `engines.node no longer allows Node 20, so the reason for ignoring major vitest updates ` +
             `is gone. Drop the vitest ignore block from .github/dependabot.yml so the ${supportedNodeLine} ` +
             `toolchain can move forward.`
-    ).toBe(supportedNodeLine === '20.x');
+    ).toEqual(expected);
   });
 });
