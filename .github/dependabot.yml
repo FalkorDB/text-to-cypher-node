@@ -10,6 +10,17 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      # vitest and @vitest/* share exact peer dependencies on each other, so
+      # they must always be updated together in a single PR. Listed first so it
+      # takes precedence over npm-minor-patch.
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
       npm-minor-patch:
         update-types:
           - "patch"
