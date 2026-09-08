@@ -19,7 +19,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { minimatch } from 'minimatch';
 import semver from 'semver';
 import { parse as parseYaml } from 'yaml';
 
@@ -50,9 +49,38 @@ const vitestPackages: string[] = Object.keys(packageJson.devDependencies)
   .filter((dependency) => dependency === 'vitest' || dependency.startsWith('@vitest/'))
   .sort();
 
-/** Whether any of a Dependabot `patterns`/`dependency-name` glob selects `dependency`. */
+/**
+ * Dependabot's own matcher, ported from `WildcardMatcher.match?`:
+ * https://github.com/dependabot/dependabot-core/blob/main/common/lib/wildcard_matcher.rb
+ *
+ *   regex_string = "a#{wildcard_string.downcase}a".split("*")
+ *                    .map { |p| Regexp.quote(p) }.join(".*").gsub(/^a|a$/, "")
+ *   /^#{regex_string}$/.match?(candidate_string.downcase)
+ *
+ * That one function backs both a group's `patterns` (DependencyGroup#matches_pattern?)
+ * and `ignore.dependency-name` (UpdateConfig.wildcard_match?, the identical
+ * algorithm), so it covers both assertions below.
+ *
+ * Worth being exact about rather than reaching for a glob library: `*` becomes a
+ * plain `.*`, which is not path-aware, so it spans the `/` in a scoped package
+ * name. minimatch stops `*` at `/`, which would make `@vitest*` look like it
+ * misses `@vitest/coverage-v8` when Dependabot says it hits.
+ *
+ * (Ruby's leading and trailing "a" only guard against String#split dropping
+ * trailing empty fields; JavaScript's split keeps them, so it is not needed.)
+ */
+const matchesPattern = (pattern: string, dependency: string) =>
+  new RegExp(
+    `^${pattern
+      .split('*')
+      .map((literal) => literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('.*')}$`,
+    'i'
+  ).test(dependency);
+
+/** Whether any Dependabot `patterns` / `dependency-name` entry selects `dependency`. */
 const selects = (patterns: string[] | undefined, dependency: string) =>
-  (patterns ?? []).some((pattern) => minimatch(dependency, pattern));
+  (patterns ?? []).some((pattern) => matchesPattern(pattern, dependency));
 
 /**
  * The major release line of the oldest Node this package claims to support.
@@ -75,6 +103,21 @@ const declaredNodeRange = (dependency: string): string | undefined => {
 };
 
 describe('dev toolchain', () => {
+  it('selects dependencies the way Dependabot does', () => {
+    // Both config assertions below are only as good as the matcher above, and
+    // its one surprising property is that `*` is not path-aware. Swapping it
+    // for string equality or for a path-aware glob would silently change what
+    // they accept, so the behaviour is pinned here.
+    expect(selects(['vitest'], 'vitest')).toBe(true);
+    expect(selects(['VITEST'], 'vitest')).toBe(true);
+    expect(selects(['@vitest/*'], '@vitest/coverage-v8')).toBe(true);
+    expect(selects(['@vitest*'], '@vitest/coverage-v8')).toBe(true);
+    expect(selects(['@vitest/*'], 'vitest')).toBe(false);
+    expect(selects(['vitest'], '@vitest/coverage-v8')).toBe(false);
+    expect(selects(['vitest'], 'vitest-mock-extended')).toBe(false);
+    expect(selects([], 'vitest')).toBe(false);
+  });
+
   it('runs on the oldest Node line this package supports', () => {
     const tooNew = Object.keys(packageJson.devDependencies)
       .map((dependency) => ({ dependency, range: declaredNodeRange(dependency) }))
