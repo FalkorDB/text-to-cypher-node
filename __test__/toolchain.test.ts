@@ -19,7 +19,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { minimatch } from 'minimatch';
 import semver from 'semver';
+import { parse as parseYaml } from 'yaml';
 
 const root = new URL('..', import.meta.url);
 
@@ -27,7 +29,30 @@ const readText = (relativePath: string) => readFileSync(new URL(relativePath, ro
 const readJson = (relativePath: string) => JSON.parse(readText(relativePath));
 
 const packageJson = readJson('package.json');
-const dependabotConfig = readText('.github/dependabot.yml');
+
+/**
+ * Parsed rather than pattern-matched: these assertions are about what Dependabot
+ * reads, so quoting, key order, block vs. flow sequences and comments are all
+ * formatting noise that must not decide whether the guard passes.
+ */
+const dependabotConfig = parseYaml(readText('.github/dependabot.yml'));
+
+const npmUpdates = dependabotConfig.updates.find(
+  (update: { 'package-ecosystem': string }) => update['package-ecosystem'] === 'npm'
+);
+
+/**
+ * The packages that must move together: vitest and every vitest plugin this
+ * package installs. Derived from package.json so a plugin added later is
+ * covered without touching this file.
+ */
+const vitestPackages: string[] = Object.keys(packageJson.devDependencies)
+  .filter((dependency) => dependency === 'vitest' || dependency.startsWith('@vitest/'))
+  .sort();
+
+/** Whether any of a Dependabot `patterns`/`dependency-name` glob selects `dependency`. */
+const selects = (patterns: string[] | undefined, dependency: string) =>
+  (patterns ?? []).some((pattern) => minimatch(dependency, pattern));
 
 /**
  * The major release line of the oldest Node this package claims to support.
@@ -66,45 +91,57 @@ describe('dev toolchain', () => {
   });
 
   it('keeps vitest and its plugins in one Dependabot group', () => {
-    const patterns = /vitest:\s*\n\s*patterns:\s*\n((?:\s*-\s*"[^"]*"\s*\n)+)/.exec(
-      dependabotConfig
-    )?.[1];
+    const groups: [string, { patterns?: string[]; 'update-types'?: string[] }][] = Object.entries(
+      npmUpdates?.groups ?? {}
+    );
+
+    const grouped = groups
+      .map(([name, group]) => ({
+        name,
+        group,
+        covers: vitestPackages.filter((dependency) => selects(group.patterns, dependency)),
+      }))
+      .find(({ covers }) => covers.length === vitestPackages.length);
 
     expect(
-      patterns,
-      '.github/dependabot.yml no longer defines a "vitest" group with a patterns list. ' +
-        '@vitest/coverage-v8 pins an exact peer dependency on vitest, so without the group ' +
-        'Dependabot splits the two into PRs that cannot install (this was #142 and #143).'
-    ).toBeDefined();
-    expect(patterns).toContain('"vitest"');
-    expect(patterns).toContain('"@vitest/*"');
+      grouped?.covers ?? [],
+      'No group in .github/dependabot.yml covers vitest and its plugins together. ' +
+        '@vitest/coverage-v8 pins an exact peer dependency on vitest, so without one group ' +
+        'Dependabot splits them into PRs that cannot install (this was #142 and #143).'
+    ).toEqual(vitestPackages);
+
+    // Omitting update-types groups every update type, which is what we need.
+    expect(
+      grouped?.group['update-types'] ?? ['major', 'minor', 'patch'],
+      `The "${grouped?.name}" group excludes major updates, so the day the hold below is ` +
+        'lifted Dependabot would raise vitest and @vitest/* as separate majors again - ' +
+        'exactly the pair of uninstallable PRs the group exists to prevent.'
+    ).toContain('major');
   });
 
   it('holds vitest and @vitest/* majors back for exactly as long as the Node floor requires it', () => {
     // Both entries are load-bearing, and each fails differently on its own:
     // ignoring only "vitest" still lets Dependabot raise @vitest/coverage-v8 5
     // by itself, which is #142 all over again, and ignoring only "@vitest/*"
-    // leaves the vitest 5 half of #143 free to come back.
-    const held = [
-      ...dependabotConfig.matchAll(
-        /-\s*dependency-name:\s*"([^"]+)"\s*\n\s*update-types:[^\n]*version-update:semver-major/g
-      ),
-    ]
-      .map(([, dependencyName]) => dependencyName)
-      .filter(
-        (dependencyName) => dependencyName === 'vitest' || dependencyName.startsWith('@vitest/')
+    // leaves the vitest 5 half of #143 free to come back. So this asserts on
+    // the packages actually covered, not on how the entries are written.
+    const majorHolds: string[] = (npmUpdates?.ignore ?? [])
+      .filter((entry: { 'update-types'?: string[] }) =>
+        (entry['update-types'] ?? []).includes('version-update:semver-major')
       )
-      .sort();
+      .map((entry: { 'dependency-name': string }) => entry['dependency-name']);
 
-    const expected = supportedNodeLine === '20.x' ? ['@vitest/*', 'vitest'] : [];
+    const held = vitestPackages.filter((dependency) => selects(majorHolds, dependency));
+
+    const expected = supportedNodeLine === '20.x' ? vitestPackages : [];
 
     expect(
       held,
       supportedNodeLine === '20.x'
-        ? '.github/dependabot.yml must ignore major updates for both "vitest" and "@vitest/*" ' +
-            'while engines.node still allows Node 20. vitest 5 dropped Node 20, so a major bump ' +
+        ? '.github/dependabot.yml must ignore major updates for every vitest package while ' +
+            'engines.node still allows Node 20. vitest 5 dropped Node 20, so a major bump ' +
             'would look green and silently break the support this package advertises - and ' +
-            'because the two packages pin each other exactly, holding back only one of them ' +
+            'because the packages pin each other exactly, holding back only some of them ' +
             'brings back the PRs that cannot install (#142 and #143).'
         : `engines.node no longer allows Node 20, so the reason for ignoring major vitest updates ` +
             `is gone. Drop the vitest ignore block from .github/dependabot.yml so the ${supportedNodeLine} ` +

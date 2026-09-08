@@ -16,8 +16,9 @@ updates:
       # alone does not help: it only turns the two unmergeable PRs into one
       # mergeable PR that would quietly drop Node 20 support. 4.x updates still
       # come through.
-      # Remove this block when engines.node drops Node 20 - toolchain.test.ts
-      # fails for as long as the hold and the Node floor disagree.
+      # Remove this block when engines.node drops Node 20 -
+      # __test__/toolchain.test.ts fails for as long as the hold and the Node
+      # floor disagree.
       - dependency-name: "vitest"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitest/*"

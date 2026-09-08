@@ -63,7 +63,8 @@
     "prettier": "^3.2.0",
     "semver": "^7.8.5",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "yaml": "^2.9.0"
   },
   "files": [
     "index.js",
