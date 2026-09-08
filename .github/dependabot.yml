@@ -9,6 +9,19 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    ignore:
+      # vitest 5 requires Node "^22.12.0 || ^24.0.0 || >=26.0.0", but this
+      # package advertises engines.node ">= 20" and CI builds and tests the
+      # whole matrix on node@20, so the major cannot be adopted yet. Grouping
+      # alone does not help: it only turns the two unmergeable PRs into one
+      # mergeable PR that would quietly drop Node 20 support. 4.x updates still
+      # come through.
+      # Remove this block when engines.node drops Node 20 - toolchain.test.ts
+      # fails for as long as the hold and the Node floor disagree.
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
     groups:
       # vitest and @vitest/* share exact peer dependencies on each other, so
       # they must always be updated together in a single PR. Listed first so it
