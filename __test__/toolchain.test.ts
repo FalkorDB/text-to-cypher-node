@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import semver from 'semver';
 import { parse as parseYaml } from 'yaml';
 
@@ -190,5 +190,98 @@ describe('dev toolchain', () => {
             `is gone. Drop the vitest ignore block from .github/dependabot.yml so the ${supportedNodeLine} ` +
             `toolchain can move forward.`
     ).toEqual(expected);
+  });
+});
+
+/**
+ * The build matrices, as GitHub Actions reads them. Parsed for the same reason
+ * the Dependabot config above is: these assertions are about what Actions does,
+ * not about how the YAML happens to be written.
+ */
+type BuildSetting = { target?: string; build?: string };
+type Job = {
+  needs?: string | string[];
+  strategy?: { matrix?: { settings?: BuildSetting[] } };
+};
+
+const workflows: [string, { jobs: Record<string, Job> }][] = [
+  ['ci.yml', parseYaml(readText('.github/workflows/ci.yml'))],
+  ['release.yml', parseYaml(readText('.github/workflows/release.yml'))],
+];
+
+const settingsOf = (job: Job | undefined): BuildSetting[] => job?.strategy?.matrix?.settings ?? [];
+
+const targetsOf = (job: Job | undefined): string[] =>
+  settingsOf(job)
+    .map((setting) => setting.target)
+    .filter((target): target is string => typeof target === 'string');
+
+describe('ci workflow', () => {
+  /**
+   * ci.yml builds the targets the tests consume in `build` and everything else
+   * in `build-extra`, so the tests do not wait on cross-compiled platforms that
+   * nothing downstream reads. That split is only safe while every tested target
+   * is still produced by a job test-binding actually waits for - otherwise the
+   * download step looks for an artifact no job in the graph uploads, and the
+   * required "Test bindings on x86_64-unknown-linux-gnu - node@20" check fails
+   * on a workflow edit rather than on a code change.
+   */
+  it('builds every target the bindings are tested on before testing them', () => {
+    const { jobs } = workflows.find(([name]) => name === 'ci.yml')![1];
+    const testJob = jobs['test-binding'];
+
+    const upstream = [testJob.needs ?? []].flat();
+    const built = new Set(upstream.flatMap((job) => targetsOf(jobs[job])));
+
+    expect(
+      targetsOf(testJob).filter((target) => !built.has(target)),
+      `test-binding downloads a bindings-<target> artifact for each of its targets, but these ` +
+        `are not built by any job it needs (${upstream.join(', ') || 'none'}). Either add the ` +
+        `target to a job in "needs", or stop testing it.`
+    ).toEqual([]);
+  });
+
+  /**
+   * cargo-zigbuild is pinned, and both workflows cross-compile with it, so the
+   * version has to come from one place. Inlining `cargo install cargo-zigbuild
+   * --version X` in each matrix entry - which is what this replaced - let ci.yml
+   * and release.yml drift, and a release built with a different cross-compiler
+   * than CI proved is exactly the kind of difference that shows up only in the
+   * published artifact.
+   */
+  it('installs the pinned cargo-zigbuild from a single script', () => {
+    for (const [name, workflow] of workflows) {
+      const crossCompiled = Object.values(workflow.jobs)
+        .flatMap(settingsOf)
+        .map((setting) => setting.build ?? '')
+        .filter((build) => build.includes('--cross-compile'));
+
+      expect(crossCompiled.length, `${name} no longer cross-compiles anything`).toBeGreaterThan(0);
+
+      for (const build of crossCompiled) {
+        expect(
+          build,
+          `A cross-compiled target in ${name} does not run scripts/install-cargo-zigbuild.sh, ` +
+            `so its cargo-zigbuild version is not the pinned one.`
+        ).toContain('scripts/install-cargo-zigbuild.sh');
+
+        expect(
+          build,
+          `A cross-compiled target in ${name} pins cargo-zigbuild inline. The version belongs ` +
+            `in scripts/install-cargo-zigbuild.sh so ci.yml and release.yml cannot disagree.`
+        ).not.toContain('cargo install cargo-zigbuild');
+      }
+    }
+  });
+
+  /** The workflows invoke the installer as `./scripts/...`, which needs the bit set in git. */
+  it('ships the cargo-zigbuild installer as an executable', () => {
+    const { mode } = statSync(new URL('scripts/install-cargo-zigbuild.sh', root));
+
+    expect(
+      (mode & 0o111) !== 0,
+      'scripts/install-cargo-zigbuild.sh is not executable, but the build commands run it ' +
+        'directly as ./scripts/install-cargo-zigbuild.sh.'
+    ).toBe(true);
   });
 });

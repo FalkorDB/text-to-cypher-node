@@ -1,0 +1,111 @@
+name: Build native binding
+description: >-
+  Builds one napi-rs target and uploads it as a bindings-<target> artifact.
+  Shared by ci.yml and release.yml so the two cannot drift: the cargo cache
+  layout, the docker cache mounts and the toolchain pins are defined once.
+
+inputs:
+  target:
+    description: Rust target triple to build, e.g. x86_64-unknown-linux-gnu.
+    required: true
+  build:
+    description: Shell command that produces text-to-cypher.*.node for the target.
+    required: true
+  docker:
+    description: >-
+      Image to run the build in. Empty means build directly on the runner, which
+      also selects the rustup toolchain install below.
+    required: false
+    default: ''
+  node-version:
+    description: Node version used to run the napi CLI.
+    required: false
+    default: '20'
+  cache-prefix:
+    description: >-
+      Distinguishes cache entries between workflows, so a release build cannot
+      restore a CI build's target/ directory and vice versa.
+    required: false
+    default: cargo
+
+runs:
+  using: composite
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install rust toolchain
+      uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+      if: ${{ !inputs.docker }}
+      with:
+        toolchain: stable
+        targets: ${{ inputs.target }}
+
+    # Keyed on the lockfile so a dependency change writes a fresh entry instead of
+    # restoring a stale target/ forever, with a prefix fallback so an unrelated
+    # bump still starts from the previous build rather than from nothing.
+    #
+    # Docker builds do not use the runner's ~/.cargo: their CARGO_HOME is inside
+    # the container and is bind-mounted to .cargo-cache below, so both locations
+    # are listed here. registry/src is deliberately absent - cargo re-extracts it
+    # from registry/cache, so caching it only makes the archive bigger.
+    - name: Cache cargo
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+      with:
+        path: |
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          .cargo-cache/registry/index/
+          .cargo-cache/registry/cache/
+          .cargo-cache/git/db/
+          target/
+        key: ${{ inputs.cache-prefix }}-${{ inputs.target }}-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'package-lock.json') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-${{ inputs.target }}-${{ runner.os }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Build in docker
+      if: ${{ inputs.docker }}
+      shell: bash
+      env:
+        BUILD_CMD: ${{ inputs.build }}
+        DOCKER_IMAGE: ${{ inputs.docker }}
+      run: |
+        set -e
+        # Must exist before the mount, otherwise docker creates them and the
+        # cache step above has nothing to save.
+        mkdir -p .cargo-cache/registry .cargo-cache/git
+        docker run --rm --user 0:0 \
+          -v "${{ github.workspace }}/.cargo-cache/registry:/usr/local/cargo/registry" \
+          -v "${{ github.workspace }}/.cargo-cache/git:/usr/local/cargo/git" \
+          -v "${{ github.workspace }}:/build" \
+          -w /build \
+          -e BUILD_CMD \
+          "$DOCKER_IMAGE" \
+          sh -c "$BUILD_CMD"
+
+    # The container runs as root, so everything it wrote is root-owned and the
+    # cache save - which runs as the runner user - cannot read it.
+    - name: Reclaim ownership of cached directories
+      if: ${{ inputs.docker }}
+      shell: bash
+      run: sudo chown -R "$(id -u):$(id -g)" target .cargo-cache
+
+    - name: Build
+      if: ${{ !inputs.docker }}
+      shell: bash
+      run: ${{ inputs.build }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: bindings-${{ inputs.target }}
+        path: text-to-cypher.*.node
+        if-no-files-found: error

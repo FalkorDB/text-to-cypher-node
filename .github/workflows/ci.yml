@@ -7,19 +7,34 @@ on:
       - master
   pull_request:
 
+# A new push supersedes the run already in flight, so the matrix is not built
+# twice for a branch that is still being pushed to.
+#
+# No paths-ignore here on purpose: "Test bindings on x86_64-unknown-linux-gnu -
+# node@20" is a required status check, and a workflow skipped by a path filter
+# never reports it, which would leave pull requests waiting on a check that can
+# never arrive.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
+  # Only the targets test-binding actually downloads. Splitting these out of the
+  # full matrix lets the tests - and the required check - start as soon as these
+  # finish, instead of waiting for the slower cross-compiled targets in
+  # build-extra that nothing downstream consumes.
   build:
     strategy:
+      # Kept false deliberately. These are per-platform native builds, so a
+      # failure on one platform says nothing about the others; cancelling the
+      # rest would hide whether a break is platform-specific or general, which
+      # is the first thing worth knowing here.
       fail-fast: false
       matrix:
         settings:
-          # macOS x64 disabled in CI due to billing - still enabled in release
-          # - host: macos-latest-large
-          #   build: npm run build -- --target x86_64-apple-darwin
-          #   target: x86_64-apple-darwin
-          - host: macos-latest
-            build: npm run build -- --target aarch64-apple-darwin
-            target: aarch64-apple-darwin
           - host: windows-latest
             build: npm run build
             target: x86_64-pc-windows-msvc
@@ -33,6 +48,33 @@ jobs:
               export CC_x86_64_unknown_linux_gnu=clang CXX_x86_64_unknown_linux_gnu=clang++ &&
               AWS_LC_SYS_CMAKE_BUILDER=1 npm run build -- --target x86_64-unknown-linux-gnu &&
               strip *.node
+
+    name: stable - ${{ matrix.settings.target }} - node@20
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/build-binding
+        with:
+          target: ${{ matrix.settings.target }}
+          docker: ${{ matrix.settings.docker }}
+          build: ${{ matrix.settings.build }}
+
+  # Platforms that are released but not exercised by test-binding. Runs
+  # alongside build and the tests rather than in front of them.
+  build-extra:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          # macOS x64 disabled in CI due to billing - still enabled in release
+          # - host: macos-latest-large
+          #   build: npm run build -- --target x86_64-apple-darwin
+          #   target: x86_64-apple-darwin
+          - host: macos-latest
+            build: npm run build -- --target aarch64-apple-darwin
+            target: aarch64-apple-darwin
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-zig
@@ -40,7 +82,7 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add x86_64-unknown-linux-musl &&
-              cargo install cargo-zigbuild --version 0.23.4 --locked &&
+              ./scripts/install-cargo-zigbuild.sh &&
               npm run build -- --target x86_64-unknown-linux-musl --cross-compile &&
               llvm-strip *.node
           - host: ubuntu-latest
@@ -50,7 +92,7 @@ jobs:
               set -e &&
               rustup update stable &&
               rustup target add aarch64-unknown-linux-gnu &&
-              cargo install cargo-zigbuild --version 0.23.4 --locked &&
+              ./scripts/install-cargo-zigbuild.sh &&
               AWS_LC_SYS_NO_JITTER_ENTROPY=1 npm run build -- --target aarch64-unknown-linux-gnu --cross-compile &&
               llvm-strip *.node
 
@@ -60,59 +102,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: ./.github/actions/build-binding
         with:
-          node-version: 20
-          cache: npm
-
-      - name: Install
-        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
-        if: ${{ !matrix.settings.docker }}
-        with:
-          toolchain: stable
-          targets: ${{ matrix.settings.target }}
-
-      - name: Cache cargo
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            .cargo-cache
-            target/
-          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build in docker
-        if: ${{ matrix.settings.docker }}
-        env:
-          BUILD_CMD: ${{ matrix.settings.build }}
-        run: |
-          docker run --rm --user 0:0 \
-            -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db \
-            -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache \
-            -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index \
-            -v ${{ github.workspace }}:/build \
-            -w /build \
-            -e BUILD_CMD \
-            ${{ matrix.settings.docker }} \
-            sh -c "$BUILD_CMD"
-
-      - name: Build
-        run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker }}
-        shell: bash
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: text-to-cypher.*.node
-          if-no-files-found: error
+          target: ${{ matrix.settings.target }}
+          docker: ${{ matrix.settings.docker }}
+          build: ${{ matrix.settings.build }}
 
   test-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
@@ -146,7 +140,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Download artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
