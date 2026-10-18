@@ -165,7 +165,7 @@ try {
 ## Need Help?
 
 - [GitHub Issues](https://github.com/FalkorDB/text-to-cypher-node/issues)
-- [FalkorDB Discord](https://discord.gg/falkordb)
+- [FalkorDB Discord](https://discord.gg/6M4QwDXn2w)
 
 ## Tips
 

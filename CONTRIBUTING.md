@@ -252,7 +252,7 @@ We welcome feature requests! Please:
 ## Questions?
 
 - Open a discussion on GitHub
-- Join the [FalkorDB Discord](https://discord.gg/falkordb)
+- Join the [FalkorDB Discord](https://discord.gg/6M4QwDXn2w)
 - Check existing documentation and issues
 
 ## License
