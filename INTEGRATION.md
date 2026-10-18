@@ -370,4 +370,4 @@ Solution: The AI model might need more context. Try rephrasing the question or p
 
 For issues or questions:
 - [text-to-cypher-node GitHub Issues](https://github.com/FalkorDB/text-to-cypher-node/issues)
-- [FalkorDB Discord](https://discord.gg/falkordb)
+- [FalkorDB Discord](https://discord.gg/6M4QwDXn2w)
