@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-11-23
+
+### Changed
+- Bumped the `text-to-cypher` Rust dependency to `0.3.1` (from `0.2.7`), which also moves `genai`
+  to `0.7.5`. Changes that reach the Node.js bindings:
+  - **Schema discovery** (`discoverSchema`, and the schema given to the model): properties holding
+    `localdatetime`, `date`, `localtime`, `duration` and `vecf32` values were silently left out of
+    the schema; they are now reported as `DateTime`, `Date`, `Time`, `Duration` and `Vector`.
+    Labels and relationship types that need escaping (spaces, dashes) are now discovered instead
+    of failing silently.
+  - **Query validation**: `DROP`/`DELETE` inside string literals, comments or escaped names (e.g.
+    `WHERE n.note = 'please delete'`) no longer get a generated query rejected as dangerous.
+  - **Result formatting**: temporal values are rendered as ISO strings, maps and vectors are
+    formatted cleanly, and property keys are escaped in results passed to the model.
+
+### Fixed
+- README: the `discoverSchema` example used `nodes`/`relationships`; the JSON fields are
+  `entities` and `relations`.
+
 ## [0.2.4] - 2026-08-03
 
 ### Changed
