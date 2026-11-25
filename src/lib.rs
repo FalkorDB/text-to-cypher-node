@@ -135,9 +135,8 @@ fn normalize_model_name(model: &str) -> String {
     }
     // Convert known single-colon provider prefixes to genai's "::" namespace format
     for prefix in &["openai:", "anthropic:", "gemini:", "ollama:"] {
-        if model.starts_with(prefix) {
+        if let Some(model_name) = model.strip_prefix(prefix) {
             let provider = &prefix[..prefix.len() - 1];
-            let model_name = &model[prefix.len()..];
             return format!("{}::{}", provider, model_name);
         }
     }

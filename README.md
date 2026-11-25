@@ -166,9 +166,13 @@ Discovers and returns the schema of a graph as JSON.
 ```javascript
 const schema = await client.discoverSchema('movies');
 const schemaObj = JSON.parse(schema);
-console.log('Nodes:', schemaObj.nodes);
-console.log('Relationships:', schemaObj.relationships);
+console.log('Node labels:', schemaObj.entities);
+console.log('Relationship types:', schemaObj.relations);
 ```
+
+The schema has the shape `{ entities: [{ label, attributes }], relations: [{ label, source, target, attributes }] }`.
+Each attribute's `type` is one of `String`, `Number`, `Integer`, `Float`, `Boolean`, `DateTime`, `Date`,
+`Time`, `Duration`, `List`, `Map`, `Vector` or `Point`.
 
 ## Model Discovery
 
